@@ -1,4 +1,5 @@
-function String(octave, semitone) {
+function String(audioCtx, octave, semitone) {
+    this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
 }
 
@@ -11,26 +12,49 @@ String.A0_HZ = 27.5;
 // so go back 9 semitones to get to C0
 String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
 
-String.prototype.pluck = function() {
-    console.log("Plucking string with frequency " + this.basicHz)
+String.prototype.pluck = function(absTime) {
+    console.log("Plucking string with frequency " + this.basicHz + 
+                " at " + absTime);
+    var bufferSource = audioCtx.createBufferSource();
+    bufferSource.buffer = getSineWaveBuffer();
+    bufferSource.connect(audioCtx.destination);
+    bufferSource.start(absTime);
+
+    function createBuffer() {
+        var channels = 1;
+        // 1 second buffer
+        var frameCount = this.audioCtx.sampleRate;
+        var sampleRate = this.audioCtx.sampleRate;
+        var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
+        return buffer;
+    }
+
+    function getSineWaveBuffer() {
+        var buffer = createBuffer();
+        var bufferChannelData = buffer.getChannelData(0);
+        for (var i = 0; i < frameCount; i++) {
+            bufferChannelData[i] = Math.sin(2 * Math.PI * this.basicHz * i/sampleRate);
+        }
+        return buffer;
+    }
 }
 
-function Guitar() {
+function Guitar(audioCtx) {
     this.strings = [
-        new String(2, 4),   // E2
-        new String(2, 9),   // A2
-        new String(3, 2),   // D3
-        new String(3, 7),   // G3
-        new String(3, 11),  // B3
-        new String(4, 4)    // E4
+        new String(audioCtx, 2, 4),   // E2
+        new String(audioCtx, 2, 9),   // A2
+        new String(audioCtx, 3, 2),   // D3
+        new String(audioCtx, 3, 7),   // G3
+        new String(audioCtx, 3, 11),  // B3
+        new String(audioCtx, 4, 4)    // E4
     ]
 }
 
-Guitar.prototype.pluckString = function(stringIndex) {
-    this.strings[stringIndex].pluck();
-}
-
-var guitar = new Guitar();
+// webkitAudioContext for Webkit browsers
+// AudioContext for Firefox
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var guitar = new Guitar(audioCtx);
+var startTime = audioCtx.currentTime;
 for (i = 0; i < 6; i++) {
-    guitar.pluckString(i);
+    guitar.strings[i].pluck(startTime + i);
 }
