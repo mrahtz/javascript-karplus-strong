@@ -1,3 +1,5 @@
+"use strict";
+
 var audioCtx;
 // webkitAudioContext for Webkit browsers
 // AudioContext for Firefox
