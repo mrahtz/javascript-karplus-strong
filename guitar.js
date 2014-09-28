@@ -12,9 +12,10 @@ String.A0_HZ = 27.5;
 // so go back 9 semitones to get to C0
 String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
 
-String.prototype.pluck = function(absTime) {
-    console.log("Plucking string with frequency " + this.basicHz + 
-                " at " + absTime);
+String.prototype.pluck = function(time, velocity) {
+    console.log(this.basicHz + " Hz string being plucked" +
+                " with velocity " + velocity +
+                " at time " + time);
 
     var bufferSource = this.audioCtx.createBufferSource();
     var channels = 1;
@@ -26,12 +27,13 @@ String.prototype.pluck = function(absTime) {
     renderDecayedSine(bufferChannelData, sampleRate, this.basicHz);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
-    bufferSource.start(absTime);
+    bufferSource.start(time);
 
     function renderDecayedSine(targetArray, sampleRate, hz) {
         var frameCount = targetArray.length;
         for (var i = 0; i < frameCount; i++) {
             bufferChannelData[i] =
+                velocity *
                 Math.pow(2, -i/(frameCount/8)) *
                 Math.sin(2 * Math.PI * hz * i/sampleRate);
         }
@@ -49,11 +51,52 @@ function Guitar(audioCtx) {
     ]
 }
 
+Guitar.prototype.pluck = function(time, stringIndex, velocity) {
+    console.log("Plucking string " + stringIndex +
+                ", velocity " + velocity +
+                ", time " + time); 
+    this.strings[stringIndex].pluck(time, velocity);
+};
+
+Guitar.prototype.strum = function(time, downstroke, velocity) {
+    console.log("Strumming with velocity " + velocity +
+                ", downstroke: " + downstroke +
+                ", at time " + time);
+    if (downstroke == true) {
+        for (var i = 0; i < 6; i++) {
+            this.strings[i].pluck(time, velocity);
+            time += Math.random()/128;
+        }
+    } else {
+        for (var i = 5; i >= 0; i--) {
+            this.strings[i].pluck(time, velocity);
+            time += Math.random()/128;
+        }
+    }
+};
+
 // webkitAudioContext for Webkit browsers
 // AudioContext for Firefox
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var guitar = new Guitar(audioCtx);
 var startTime = audioCtx.currentTime;
-for (i = 0; i < 6; i++) {
+/*for (i = 0; i < 6; i++) {
     guitar.strings[i].pluck(startTime + i);
-}
+}*/
+
+
+var timeUnit = 1/8;
+guitar.strum(timeUnit * 0,      true,  1.0);
+guitar.strum(timeUnit * 4,      true,  1.0);
+guitar.strum(timeUnit * 6,      false, 0.8);
+guitar.strum(timeUnit * 10,     false, 0.8);
+guitar.strum(timeUnit * 12,     true,  1.0);
+guitar.strum(timeUnit * 14,     false, 0.8);
+guitar.strum(1 + timeUnit * 0,  true,  1.0);
+guitar.strum(1 + timeUnit * 4,  true,  1.0);
+guitar.strum(1 + timeUnit * 6,  false, 0.8);
+guitar.strum(1 + timeUnit * 10, false, 0.8);
+guitar.strum(1 + timeUnit * 12, true,  1.0);
+guitar.strum(1 + timeUnit * 14, false, 0.8);
+guitar.pluck(1 + timeUnit * 15,   2, 0.7);
+guitar.pluck(1 + timeUnit * 15.5, 1, 0.7);
