@@ -15,27 +15,26 @@ String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
 String.prototype.pluck = function(absTime) {
     console.log("Plucking string with frequency " + this.basicHz + 
                 " at " + absTime);
-    var bufferSource = audioCtx.createBufferSource();
-    bufferSource.buffer = getSineWaveBuffer();
+
+    var bufferSource = this.audioCtx.createBufferSource();
+    var channels = 1;
+    // 1 second buffer
+    var frameCount = audioCtx.sampleRate;
+    var sampleRate = audioCtx.sampleRate;
+    var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
+    var bufferChannelData = buffer.getChannelData(0);
+    renderDecayedSine(bufferChannelData, sampleRate, this.basicHz);
+    bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     bufferSource.start(absTime);
 
-    function createBuffer() {
-        var channels = 1;
-        // 1 second buffer
-        var frameCount = this.audioCtx.sampleRate;
-        var sampleRate = this.audioCtx.sampleRate;
-        var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
-        return buffer;
-    }
-
-    function getSineWaveBuffer() {
-        var buffer = createBuffer();
-        var bufferChannelData = buffer.getChannelData(0);
+    function renderDecayedSine(targetArray, sampleRate, hz) {
+        var frameCount = targetArray.length;
         for (var i = 0; i < frameCount; i++) {
-            bufferChannelData[i] = Math.sin(2 * Math.PI * this.basicHz * i/sampleRate);
+            bufferChannelData[i] =
+                Math.pow(2, -i/(frameCount/8)) *
+                Math.sin(2 * Math.PI * hz * i/sampleRate);
         }
-        return buffer;
     }
 }
 
