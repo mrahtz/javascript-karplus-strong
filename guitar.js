@@ -39,6 +39,10 @@ String.prototype.pluck = function(time, velocity) {
                 Math.pow(2, -i/(frameCount/8)) *
                 Math.sin(2 * Math.PI * hz * i/sampleRate);
         }
+        // doesn't seem to make much effect
+        /*for (var i = 0; i < bufferChannelData.length-2; i++) {
+            bufferChannelData[i] = 0.5*(bufferChannelData[i+1] + bufferChannelData[i+2]);
+        }*/
     }
 }
 
@@ -114,7 +118,7 @@ function createDummySource(audioCtx) {
 }
 
 function queueStrums(startTime, chords, currentChordIndex) {
-    var timeUnit = 1/8;
+    var timeUnit = 3/32.0;
     var currentChord = chords[currentChordIndex];
     guitar.setChord(currentChord);
     guitar.strum(startTime + timeUnit * 0,  true,  1.0);
@@ -136,7 +140,7 @@ function queueStrums(startTime, chords, currentChordIndex) {
     dummySource.onended = function() { 
         queueStrums(startTime + timeUnit*32, chords, nextChord);
     };
-    dummySource.start(startTime + timeUnit*31);
+    dummySource.start(startTime + timeUnit*16);
 }
 
 chords = [Guitar.C_MAJOR,
