@@ -1,6 +1,7 @@
 function String(audioCtx, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
+    this.hz = this.basicHz;
 }
 
 // work from A0 as a reference,
@@ -13,9 +14,10 @@ String.A0_HZ = 27.5;
 String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
 
 String.prototype.pluck = function(time, velocity) {
-    console.log(this.basicHz + " Hz string being plucked" +
+    console.log(this.hz + " Hz string being plucked" +
                 " with velocity " + velocity +
-                " at time " + time);
+                " at time " + time + 
+                ", actual time " + this.audioCtx.currentTime);
 
     var bufferSource = this.audioCtx.createBufferSource();
     var channels = 1;
@@ -24,7 +26,7 @@ String.prototype.pluck = function(time, velocity) {
     var sampleRate = audioCtx.sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     var bufferChannelData = buffer.getChannelData(0);
-    renderDecayedSine(bufferChannelData, sampleRate, this.basicHz);
+    renderDecayedSine(bufferChannelData, sampleRate, this.hz);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     bufferSource.start(time);
@@ -40,6 +42,13 @@ String.prototype.pluck = function(time, velocity) {
     }
 }
 
+String.prototype.setTab = function(tab) {
+    console.log("Setting tab " + tab +
+                " on string with basicHz " + this.basicHz);
+    this.hz = this.basicHz * Math.pow(2, tab/12);
+    console.log("New frequency is " + this.hz);
+};
+
 function Guitar(audioCtx) {
     this.strings = [
         new String(audioCtx, 2, 4),   // E2
@@ -50,6 +59,18 @@ function Guitar(audioCtx) {
         new String(audioCtx, 4, 4)    // E4
     ]
 }
+
+Guitar.C_MAJOR = [-1,  3, 2, 0, 0, 0];
+Guitar.G_MAJOR = [ 3,  2, 0, 0, 0, 3];
+Guitar.A_MINOR = [ 0,  0, 2, 2, 0, 0];
+Guitar.E_MINOR = [ 0,  2, 2, 0, 3, 0];
+
+Guitar.prototype.setChord = function(chord) {
+    console.log("Setting chord " + chord);
+    for (var i = 0; i < 6; i++) {
+        this.strings[i].setTab(chord[i]);
+    }
+};
 
 Guitar.prototype.pluck = function(time, stringIndex, velocity) {
     console.log("Plucking string " + stringIndex +
@@ -80,23 +101,46 @@ Guitar.prototype.strum = function(time, downstroke, velocity) {
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var guitar = new Guitar(audioCtx);
 var startTime = audioCtx.currentTime;
-/*for (i = 0; i < 6; i++) {
-    guitar.strings[i].pluck(startTime + i);
-}*/
 
+function createDummySource(audioCtx) {
+    dummySource = audioCtx.createBufferSource();
+    var channels = 1;
+    // 2 samples seems to the the minimum to get it to work
+    var frameCount = 2;
+    dummySource.buffer = 
+        audioCtx.createBuffer(channels, frameCount, audioCtx.sampleRate);
+    dummySource.connect(audioCtx.destination);
+    return dummySource;
+}
 
-var timeUnit = 1/8;
-guitar.strum(timeUnit * 0,      true,  1.0);
-guitar.strum(timeUnit * 4,      true,  1.0);
-guitar.strum(timeUnit * 6,      false, 0.8);
-guitar.strum(timeUnit * 10,     false, 0.8);
-guitar.strum(timeUnit * 12,     true,  1.0);
-guitar.strum(timeUnit * 14,     false, 0.8);
-guitar.strum(1 + timeUnit * 0,  true,  1.0);
-guitar.strum(1 + timeUnit * 4,  true,  1.0);
-guitar.strum(1 + timeUnit * 6,  false, 0.8);
-guitar.strum(1 + timeUnit * 10, false, 0.8);
-guitar.strum(1 + timeUnit * 12, true,  1.0);
-guitar.strum(1 + timeUnit * 14, false, 0.8);
-guitar.pluck(1 + timeUnit * 15,   2, 0.7);
-guitar.pluck(1 + timeUnit * 15.5, 1, 0.7);
+function queueStrums(startTime, chords, currentChordIndex) {
+    var timeUnit = 1/8;
+    var currentChord = chords[currentChordIndex];
+    guitar.setChord(currentChord);
+    guitar.strum(startTime + timeUnit * 0,  true,  1.0);
+    guitar.strum(startTime + timeUnit * 4,  true,  1.0);
+    guitar.strum(startTime + timeUnit * 6,  false, 0.8);
+    guitar.strum(startTime + timeUnit * 10, false, 0.8);
+    guitar.strum(startTime + timeUnit * 12, true,  1.0);
+    guitar.strum(startTime + timeUnit * 14, false, 0.8);
+    guitar.strum(startTime + timeUnit * 16, true,  1.0);
+    guitar.strum(startTime + timeUnit * 20, true,  1.0);
+    guitar.strum(startTime + timeUnit * 22, false, 0.8);
+    guitar.strum(startTime + timeUnit * 26, false, 0.8);
+    guitar.strum(startTime + timeUnit * 28, true,  1.0);
+    guitar.strum(startTime + timeUnit * 30, false, 0.8);
+    guitar.pluck(startTime + timeUnit * 31,   2, 0.7);
+    guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7);
+    var nextChord = (currentChordIndex + 1) % 4;
+    var dummySource = createDummySource(audioCtx);
+    dummySource.onended = function() { 
+        queueStrums(startTime + timeUnit*32, chords, nextChord);
+    };
+    dummySource.start(startTime + timeUnit*31);
+}
+
+chords = [Guitar.C_MAJOR,
+          Guitar.G_MAJOR,
+          Guitar.A_MINOR,
+          Guitar.E_MINOR];
+queueStrums(0, chords, 0);
