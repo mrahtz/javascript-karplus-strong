@@ -2,6 +2,19 @@ function String(audioCtx, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
     this.hz = this.basicHz;
+    
+    var basicPeriod = 1/this.basicHz;
+    var basicPeriodSamples = Math.round(basicPeriod * audioCtx.sampleRate);
+    this.seedNoise = generateSeedNoise(basicPeriodSamples);
+
+    function generateSeedNoise(samples) {
+        noiseArray = [];
+        for (i = 0; i < samples; i++) {
+            // Math.random() only returns between 0 and 1
+            noiseArray[i] = -1 + 2*Math.random();
+        }
+        return noiseArray;
+    }
 }
 
 // work from A0 as a reference,
@@ -26,7 +39,8 @@ String.prototype.pluck = function(time, velocity) {
     var sampleRate = audioCtx.sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     var bufferChannelData = buffer.getChannelData(0);
-    renderDecayedSine(bufferChannelData, sampleRate, this.hz);
+    //renderDecayedSine(bufferChannelData, sampleRate, this.hz);
+    renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, this.hz);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     bufferSource.start(time);
@@ -43,6 +57,19 @@ String.prototype.pluck = function(time, velocity) {
         /*for (var i = 0; i < bufferChannelData.length-2; i++) {
             bufferChannelData[i] = 0.5*(bufferChannelData[i+1] + bufferChannelData[i+2]);
         }*/
+    }
+
+    function renderKarplusStrong(targetArray, seedNoise, sampleRate, hz) {
+        var period = 1/hz;
+        var periodSamples = period * sampleRate;
+        var frameCount = targetArray.length;
+        for (var i = 0; i < frameCount; i++) {
+            var noiseIndex = i % periodSamples;
+            bufferChannelData[i] =
+                velocity *
+                Math.pow(2, -i/(frameCount/8)) *
+                seedNoise[noiseIndex];
+        }
     }
 }
 
@@ -140,7 +167,7 @@ function queueStrums(startTime, chords, currentChordIndex) {
     dummySource.onended = function() { 
         queueStrums(startTime + timeUnit*32, chords, nextChord);
     };
-    dummySource.start(startTime + timeUnit*16);
+    //dummySource.start(startTime + timeUnit*16);
 }
 
 chords = [Guitar.C_MAJOR,
