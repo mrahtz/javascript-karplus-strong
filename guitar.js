@@ -83,7 +83,7 @@ String.prototype.pluck = function(time, velocity) {
             heapFloat32[i] = seedNoise[i];
         }
         var fast = asmTest(window, null, heap);
-        /*
+        
         fast.renderKarplusStrong(0,
                                  seedNoise.length-1,
                                  seedNoise.length,
@@ -91,7 +91,8 @@ String.prototype.pluck = function(time, velocity) {
                                  sampleRate,
                                  hz,
                                  velocity);
-        */
+        
+        /*
         fast.renderDecayedSine(0,
                                seedNoise.length-1,
                                seedNoise.length,
@@ -99,10 +100,10 @@ String.prototype.pluck = function(time, velocity) {
                                sampleRate,
                                hz,
                                velocity);
+        */
         for (var i = 0; i < targetArray.length; i++) {
             targetArray[i] = heapFloat32[seedNoise.length+i];
         }
-        console.log(targetArray[0]);
     }
 
     function asmTest(stdlib, foreign, heapBuffer) {
@@ -136,7 +137,10 @@ String.prototype.pluck = function(time, velocity) {
                 var noiseIndex = (targetIndex % periodSamples)|0;
                 var heapNoiseIndex = (seedNoiseStart + noiseIndex)|0;
                 var heapTargetIndex = (targetArrayStart + targetIndex)|0;
-                heap[heapTargetIndex] = Math.fround(heap[heapNoiseIndex]);
+                heap[heapTargetIndex] =
+                    velocity *
+                    Math.pow(2, -Math.fround(targetIndex) / (Math.fround(frameCount)/8)) *
+                    Math.fround(heap[heapNoiseIndex]);
                 targetIndex = (targetIndex + 1)|0;
                 if (targetIndex == frameCount) {
                     break;
