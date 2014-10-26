@@ -49,7 +49,7 @@ String.prototype.pluck = function(time, velocity) {
     function renderDecayedSine(targetArray, sampleRate, hz) {
         var frameCount = targetArray.length;
         for (var i = 0; i < frameCount; i++) {
-            bufferChannelData[i] =
+            targetArray[i] =
                 velocity *
                 Math.pow(2, -i/(frameCount/8)) *
                 Math.sin(2 * Math.PI * hz * i/sampleRate);
@@ -66,7 +66,7 @@ String.prototype.pluck = function(time, velocity) {
         var frameCount = targetArray.length;
         for (var i = 0; i < frameCount; i++) {
             var noiseIndex = i % periodSamples;
-            bufferChannelData[i] =
+            targetArray[i] =
                 seedNoise[noiseIndex];
         }
     }
