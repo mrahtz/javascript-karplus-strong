@@ -66,11 +66,21 @@ String.prototype.pluck = function(time, velocity) {
         for (var i = 0; i < frameCount; i++) {
             var noiseIndex = i % periodSamples;
             bufferChannelData[i] =
-                velocity *
-                Math.pow(2, -i/(frameCount/8)) *
                 seedNoise[noiseIndex];
         }
     }
+
+    /*function asmTest(stdlib, foreign, heap) {
+        "use asm";
+
+        function renderKarplusStrong(sampleRate, hz) {
+            // coerce arguments to integers
+            sampleRate = sampleRate|0;
+            hz = hz|0;
+        }
+
+        return { renderKarplusStrong: renderKarplusStrong };
+    }*/
 }
 
 String.prototype.setTab = function(tab) {
