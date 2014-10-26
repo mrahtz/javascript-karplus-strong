@@ -74,18 +74,30 @@ String.prototype.pluck = function(time, velocity) {
         }
     }
 
+    // asm.js spec at http://asmjs.org/spec/latest/
     function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity) {
-        var heapSize = targetArray.length + seedNoise.length;
-        // targetArray and seedNoise are both Float32Arrays
-        // so to get the heap size in bytes, multiply by 4
-        heapSize *= 4;
-        var heap = new ArrayBuffer(heapSize);
-        var heapFloat32 = new Float32Array(heap);
+        var heapFloat32Size = targetArray.length + seedNoise.length;
+        var heapFloat32 = new Float32Array(heapFloat32Size);
         for (var i = 0; i < seedNoise.length; i++) {
             heapFloat32[i] = seedNoise[i];
         }
-        var asm = asmFunctions(window, null, heap);
+
+        // from the asm.js spec, it sounds like the heap must be
+        // passed in as a plain ArrayBuffer
+        var heapBuffer = heapFloat32.buffer;
+        var asm = asmFunctions(window, null, heapBuffer);
         
+        /*
+        asm.renderKarplusStrong({
+            seedNoiseStart:   0,
+            seedNoiseEnd:     seedNoise.length-1,
+            targetArrayStart: seedNoise.length,
+            targetArrayEnd:   seedNoise.length + targetArray.length - 1,
+            sampleRate:       sampleRate,
+            hz:               hz,
+            velocity:         velocity
+        });
+        */
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
                                 seedNoise.length,
