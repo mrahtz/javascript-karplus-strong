@@ -40,13 +40,14 @@ String.prototype.pluck = function(time, velocity) {
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
-    //renderDecayedSine(bufferChannelData, sampleRate, this.hz);
-    renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, this.hz);
+    //renderDecayedSine(bufferChannelData, sampleRate, this.hz, velocity);
+    //renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, this.hz, velocity);
+    asmWrapper(bufferChannelData, this.seedNoise, sampleRate, this.hz, velocity);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     bufferSource.start(time);
 
-    function renderDecayedSine(targetArray, sampleRate, hz) {
+    function renderDecayedSine(targetArray, sampleRate, hz, velocity) {
         var frameCount = targetArray.length;
         for (var i = 0; i < frameCount; i++) {
             targetArray[i] =
@@ -60,7 +61,7 @@ String.prototype.pluck = function(time, velocity) {
         }*/
     }
 
-    function renderKarplusStrong(targetArray, seedNoise, sampleRate, hz) {
+    function renderKarplusStrong(targetArray, seedNoise, sampleRate, hz, velocity) {
         var period = 1/hz;
         var periodSamples = period * sampleRate;
         var frameCount = targetArray.length;
@@ -71,17 +72,116 @@ String.prototype.pluck = function(time, velocity) {
         }
     }
 
-    /*function asmTest(stdlib, foreign, heap) {
+    function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity) {
+        var heapSize = targetArray.length + seedNoise.length;
+        // targetArray and seedNoise are both Float32Arrays
+        // so to get the heap size in bytes, multiply by 4
+        heapSize *= 4;
+        var heap = new ArrayBuffer(heapSize);
+        var heapFloat32 = new Float32Array(heap);
+        for (var i = 0; i < seedNoise.length; i++) {
+            heapFloat32[i] = seedNoise[i];
+        }
+        var fast = asmTest(window, null, heap);
+        /*
+        fast.renderKarplusStrong(0,
+                                 seedNoise.length-1,
+                                 seedNoise.length,
+                                 seedNoise.length+targetArray.length-1,
+                                 sampleRate,
+                                 hz,
+                                 velocity);
+        */
+        fast.renderDecayedSine(0,
+                               seedNoise.length-1,
+                               seedNoise.length,
+                               seedNoise.length+targetArray.length-1,
+                               sampleRate,
+                               hz,
+                               velocity);
+        for (var i = 0; i < targetArray.length; i++) {
+            targetArray[i] = heapFloat32[seedNoise.length+i];
+        }
+        console.log(targetArray[0]);
+    }
+
+    function asmTest(stdlib, foreign, heapBuffer) {
         "use asm";
 
-        function renderKarplusStrong(sampleRate, hz) {
-            // coerce arguments to integers
+        // heap is supposed to come in as just an ArrayBuffer
+        // so first need to get a Float32 of it
+        var heap = new Float32Array(heapBuffer);
+
+        function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
+                                     targetArrayStart, targetArrayEnd,
+                                     sampleRate, hz, velocity) {
+            // coersion to indicate type of arguments
+            seedNoiseStart = seedNoiseStart|0;
+            seedNoiseEnd = seedNoiseEnd|0;
+            targetArrayStart = targetArrayStart|0;
+            targetArrayEnd = targetArrayEnd|0;
             sampleRate = sampleRate|0;
             hz = hz|0;
+            // use Math.fround(x) to specify x's type to be 'float'
+            var hz_float = Math.fround(hz);
+            var unity = Math.fround(1);
+            var period = Math.fround(unity/hz_float);
+            var periodSamples_float = Math.fround(period*sampleRate);
+            // int
+            var periodSamples = Math.round(periodSamples_float)|0;
+            var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
+
+            var targetIndex = 0;
+            while(1) {
+                var noiseIndex = (targetIndex % periodSamples)|0;
+                var heapNoiseIndex = (seedNoiseStart + noiseIndex)|0;
+                var heapTargetIndex = (targetArrayStart + targetIndex)|0;
+                heap[heapTargetIndex] = Math.fround(heap[heapNoiseIndex]);
+                targetIndex = (targetIndex + 1)|0;
+                if (targetIndex == frameCount) {
+                    break;
+                }
+            }
         }
 
-        return { renderKarplusStrong: renderKarplusStrong };
-    }*/
+        function renderDecayedSine(seedNoiseStart, seedNoiseEnd,
+                                   targetArrayStart, targetArrayEnd,
+                                   sampleRate, hz, velocity) {
+            // coersion to indicate type of arguments
+            seedNoiseStart = seedNoiseStart|0;
+            seedNoiseEnd = seedNoiseEnd|0;
+            targetArrayStart = targetArrayStart|0;
+            targetArrayEnd = targetArrayEnd|0;
+            sampleRate = sampleRate|0;
+            hz = hz|0;
+            velocity = +velocity;
+            // use Math.fround(x) to specify x's type to be 'float'
+            var hz_float = Math.fround(hz);
+            var unity = Math.fround(1);
+            var period = Math.fround(unity/hz_float);
+            var periodSamples_float = Math.fround(period*sampleRate);
+            // int
+            var periodSamples = Math.round(periodSamples_float)|0;
+            var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
+
+            var targetIndex = 0;
+            while(1) {
+                var heapTargetIndex = (targetArrayStart + targetIndex)|0;
+                var t = Math.fround(Math.fround(targetIndex)/Math.fround(sampleRate));
+                heap[heapTargetIndex] = 
+                    velocity *
+                    Math.pow(2, -Math.fround(targetIndex) / (Math.fround(frameCount)/8)) *
+                    Math.sin(2 * Math.PI * hz * t);
+                targetIndex = (targetIndex + 1)|0;
+                if (targetIndex == frameCount) {
+                    break;
+                }
+            }
+        }
+
+        return { renderKarplusStrong: renderKarplusStrong,
+                 renderDecayedSine: renderDecayedSine };
+    }
 }
 
 String.prototype.setTab = function(tab) {
