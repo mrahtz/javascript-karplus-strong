@@ -8,7 +8,7 @@ function String(audioCtx, octave, semitone) {
     this.seedNoise = generateSeedNoise(basicPeriodSamples);
 
     function generateSeedNoise(samples) {
-        noiseArray = [];
+        var noiseArray = new Float32Array(samples);
         for (i = 0; i < samples; i++) {
             // Math.random() only returns between 0 and 1
             noiseArray[i] = -1 + 2*Math.random();
@@ -38,6 +38,7 @@ String.prototype.pluck = function(time, velocity) {
     var frameCount = audioCtx.sampleRate;
     var sampleRate = audioCtx.sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
+    // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
     //renderDecayedSine(bufferChannelData, sampleRate, this.hz);
     renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, this.hz);
