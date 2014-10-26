@@ -1,3 +1,5 @@
+// === String ===
+
 function String(audioCtx, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
@@ -82,31 +84,31 @@ String.prototype.pluck = function(time, velocity) {
         for (var i = 0; i < seedNoise.length; i++) {
             heapFloat32[i] = seedNoise[i];
         }
-        var fast = asmTest(window, null, heap);
+        var asm = asmFunctions(window, null, heap);
         
-        fast.renderKarplusStrong(0,
-                                 seedNoise.length-1,
-                                 seedNoise.length,
-                                 seedNoise.length+targetArray.length-1,
-                                 sampleRate,
-                                 hz,
-                                 velocity);
+        asm.renderKarplusStrong(0,
+                                seedNoise.length-1,
+                                seedNoise.length,
+                                seedNoise.length+targetArray.length-1,
+                                sampleRate,
+                                hz,
+                                velocity);
         
         /*
-        fast.renderDecayedSine(0,
-                               seedNoise.length-1,
-                               seedNoise.length,
-                               seedNoise.length+targetArray.length-1,
-                               sampleRate,
-                               hz,
-                               velocity);
+        asm.renderDecayedSine(0,
+                              seedNoise.length-1,
+                              seedNoise.length,
+                              seedNoise.length+targetArray.length-1,
+                              sampleRate,
+                              hz,
+                              velocity);
         */
         for (var i = 0; i < targetArray.length; i++) {
             targetArray[i] = heapFloat32[seedNoise.length+i];
         }
     }
 
-    function asmTest(stdlib, foreign, heapBuffer) {
+    function asmFunctions(stdlib, foreign, heapBuffer) {
         "use asm";
 
         // heap is supposed to come in as just an ArrayBuffer
@@ -195,6 +197,8 @@ String.prototype.setTab = function(tab) {
     console.log("New frequency is " + this.hz);
 };
 
+// === Guitar ===
+
 function Guitar(audioCtx) {
     this.strings = [
         new String(audioCtx, 2, 4),   // E2
@@ -242,12 +246,10 @@ Guitar.prototype.strum = function(time, downstroke, velocity) {
     }
 };
 
-// webkitAudioContext for Webkit browsers
-// AudioContext for Firefox
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-var guitar = new Guitar(audioCtx);
-var startTime = audioCtx.currentTime;
+// === Rhythm code ===
 
+// dummy source used to start playback of next
+// set of chords
 function createDummySource(audioCtx) {
     dummySource = audioCtx.createBufferSource();
     var channels = 1;
@@ -282,8 +284,14 @@ function queueStrums(startTime, chords, currentChordIndex) {
     dummySource.onended = function() { 
         queueStrums(startTime + timeUnit*32, chords, nextChord);
     };
-    //dummySource.start(startTime + timeUnit*16);
+    dummySource.start(startTime + timeUnit*16);
 }
+
+// webkitAudioContext for Webkit browsers
+// AudioContext for Firefox
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var guitar = new Guitar(audioCtx);
+var startTime = audioCtx.currentTime;
 
 chords = [Guitar.C_MAJOR,
           Guitar.G_MAJOR,
