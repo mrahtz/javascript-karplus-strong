@@ -87,17 +87,6 @@ String.prototype.pluck = function(time, velocity) {
         var heapBuffer = heapFloat32.buffer;
         var asm = asmFunctions(window, null, heapBuffer);
         
-        /*
-        asm.renderKarplusStrong({
-            seedNoiseStart:   0,
-            seedNoiseEnd:     seedNoise.length-1,
-            targetArrayStart: seedNoise.length,
-            targetArrayEnd:   seedNoise.length + targetArray.length - 1,
-            sampleRate:       sampleRate,
-            hz:               hz,
-            velocity:         velocity
-        });
-        */
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
                                 seedNoise.length,
