@@ -4,7 +4,6 @@ function String(audioCtx, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
     this.basicHz = this.basicHz.toFixed(2);
-    this.hz = this.basicHz;
     
     var basicPeriod = 1/this.basicHz;
     var basicPeriodSamples = Math.round(basicPeriod * audioCtx.sampleRate);
@@ -29,19 +28,14 @@ String.A0_HZ = 27.5;
 // so go back 9 semitones to get to C0
 String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
 
-String.prototype.setTab = function(tab) {
-    console.log("Setting tab " + tab +
-                " on string with basicHz " + this.basicHz);
-    this.hz = this.basicHz * Math.pow(2, tab/12);
-    console.log("New frequency is " + this.hz);
-};
-
-String.prototype.pluck = function(time, velocity) {
-    console.log(this.hz + " Hz string being plucked" +
+String.prototype.pluck = function(time, velocity, tab) {
+    console.log(this.basicHz + " Hz string being plucked" +
+                " with tab " + tab +
                 " with velocity " + velocity +
                 " at time " + time + 
                 ", actual time " + this.audioCtx.currentTime);
 
+    var hz = this.basicHz * Math.pow(2, tab/12);
     var bufferSource = this.audioCtx.createBufferSource();
     var channels = 1;
     // 1 second buffer
@@ -50,9 +44,9 @@ String.prototype.pluck = function(time, velocity) {
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
-    //renderDecayedSine(bufferChannelData, sampleRate, this.hz, velocity);
-    //renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, this.hz, velocity);
-    asmWrapper(bufferChannelData, this.seedNoise, sampleRate, this.hz, velocity);
+    //renderDecayedSine(bufferChannelData, sampleRate, hz, velocity);
+    //renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, hz, velocity);
+    asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, velocity);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     bufferSource.start(time);
@@ -243,11 +237,11 @@ Guitar.prototype.setTab = function(chord) {
     }
 };
 
-Guitar.prototype.pluck = function(time, stringIndex, velocity) {
+Guitar.prototype.pluck = function(time, stringIndex, velocity, tab) {
     console.log("Plucking string " + stringIndex +
                 ", velocity " + velocity +
                 ", time " + time); 
-    this.strings[stringIndex].pluck(time, velocity);
+    this.strings[stringIndex].pluck(time, velocity, tab);
 };
 
 // strum strings set to be strummed by the chord
@@ -267,7 +261,7 @@ Guitar.prototype.strumChord = function(time, chord, downstroke, velocity) {
         if (chord[stringNumber] == -1) {
             continue;
         }
-        this.strings[i].pluck(time, velocity);
+        this.strings[i].pluck(time, velocity, chord[stringNumber]);
         time += Math.random()/128;
     }
 };
@@ -291,22 +285,21 @@ function queueStrums(startTime, chords, currentChordIndex) {
     //var timeUnit = 3/32.0;
     var timeUnit = 4/32.0;
     var currentChord = chords[currentChordIndex];
-    guitar.setTab(currentChord);
-    guitar.strumChord(startTime + timeUnit * 0,  true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 4,  true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 6,  false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 10, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 12, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 14, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 16, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 20, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 22, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 26, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 28, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 30, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 0,  currentChord, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 4,  currentChord, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 6,  currentChord, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 10, currentChord, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 12, currentChord, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 14, currentChord, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 16, currentChord, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 20, currentChord, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 22, currentChord, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 26, currentChord, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 28, currentChord, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 30, currentChord, false, 0.8);
     // second argument is string to pluck
-    guitar.pluck(startTime + timeUnit * 31,   2, 0.7);
-    guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7);
+    guitar.pluck(startTime + timeUnit * 31,   2, 0.7, currentChord[2]);
+    guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7, currentChord[1]);
     var nextChord = (currentChordIndex + 1) % 4;
     var dummySource = createDummySource(audioCtx);
     dummySource.onended = function() { 
