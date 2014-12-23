@@ -3,6 +3,7 @@
 function String(audioCtx, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
+    this.basicHz = this.basicHz.toFixed(2);
     this.hz = this.basicHz;
     
     var basicPeriod = 1/this.basicHz;
@@ -207,7 +208,11 @@ String.prototype.setTab = function(tab) {
 
 // === Guitar ===
 
+// JavaScript's class definitions are just functions
+// the function itself serves as the constructor for the class
 function Guitar(audioCtx) {
+    // 'strings' becomes a 'property'
+    // (an instance variable)
     this.strings = [
         new String(audioCtx, 2, 4),   // E2
         new String(audioCtx, 2, 9),   // A2
@@ -223,6 +228,8 @@ Guitar.G_MAJOR = [ 3,  2, 0, 0, 0, 3];
 Guitar.A_MINOR = [ 0,  0, 2, 2, 0, 0];
 Guitar.E_MINOR = [ 0,  2, 2, 0, 3, 0];
 
+// To add a class method in JavaScript,
+// we add a function property to the class's 'prototype' property
 Guitar.prototype.setChord = function(chord) {
     console.log("Setting chord " + chord);
     for (var i = 0; i < 6; i++) {
@@ -270,7 +277,8 @@ function createDummySource(audioCtx) {
 }
 
 function queueStrums(startTime, chords, currentChordIndex) {
-    var timeUnit = 3/32.0;
+    //var timeUnit = 3/32.0;
+    var timeUnit = 4/32.0;
     var currentChord = chords[currentChordIndex];
     guitar.setChord(currentChord);
     guitar.strum(startTime + timeUnit * 0,  true,  1.0);
@@ -299,7 +307,16 @@ function queueStrums(startTime, chords, currentChordIndex) {
 // AudioContext for Firefox
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var guitar = new Guitar(audioCtx);
-var startTime = audioCtx.currentTime;
+
+
+guitarInfoPara = document.getElementById("guitarinfo");
+
+for (var i = 0; i < guitar.strings.length; i++) {
+    guitarInfoPara.innerHTML +=
+        "String " + i
+        + " has fundamental tone " + guitar.strings[i].basicHz + " Hz"
+        + "<br />";
+}
 
 chords = [Guitar.C_MAJOR,
           Guitar.G_MAJOR,
