@@ -120,34 +120,38 @@ String.prototype.pluck = function(time, velocity) {
                                      targetArrayStart, targetArrayEnd,
                                      sampleRate, hz, velocity) {
             // coersion to indicate type of arguments
+            // ORing with 0 indicates type int
             seedNoiseStart = seedNoiseStart|0;
             seedNoiseEnd = seedNoiseEnd|0;
             targetArrayStart = targetArrayStart|0;
             targetArrayEnd = targetArrayEnd|0;
             sampleRate = sampleRate|0;
             hz = hz|0;
-            // use Math.fround(x) to specify x's type to be 'float'
+
+            // Math.fround(x) indicates type float
             var hz_float = Math.fround(hz);
-            var unity = Math.fround(1);
-            var period = Math.fround(unity/hz_float);
+            var period = Math.fround(1/hz_float);
             var periodSamples_float = Math.fround(period*sampleRate);
             // int
             var periodSamples = Math.round(periodSamples_float)|0;
             var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
-
-            var targetIndex = targetIndex|0;
-
+            var targetIndex = 0;
             var lastOutputSample = 0;
+
             for (targetIndex = 0; targetIndex < frameCount; targetIndex = (targetIndex + 1)|0) {
                 var heapTargetIndex = (targetArrayStart + targetIndex)|0;
                 if (targetIndex < periodSamples) {
+                    // for the first period, feed in noise
                     var heapNoiseIndex = (seedNoiseStart + targetIndex)|0;
                     var curInputSample = Math.fround(heap[heapNoiseIndex]);
                 } else {
+                    // for subsequent periods, feed in the output from
+                    // one period ago
                     var lastPeriodIndex = heapTargetIndex - periodSamples;
                     var curInputSample = Math.fround(heap[lastPeriodIndex]);
                 }
 
+                // output is low-pass filtered version of input
                 var curOutputSample = 0.5*curInputSample + (1 - 0.5)*lastOutputSample;
                 heap[heapTargetIndex] = curOutputSample;
                 lastOutputSample = curOutputSample;
