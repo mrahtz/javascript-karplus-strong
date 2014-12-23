@@ -233,10 +233,13 @@ Guitar.E_MINOR = [ 0,  2, 2, 0, 3, 0];
 
 // To add a class method in JavaScript,
 // we add a function property to the class's 'prototype' property
-Guitar.prototype.setChord = function(chord) {
-    console.log("Setting chord " + chord);
+Guitar.prototype.setTab = function(chord) {
+    console.log("Setting tabs " + chord);
     for (var i = 0; i < 6; i++) {
-        this.strings[i].setTab(chord[i]);
+        // -1 => don't touch that string
+        if (chord[i] != -1) {
+            this.strings[i].setTab(chord[i]);
+        }
     }
 };
 
@@ -247,17 +250,25 @@ Guitar.prototype.pluck = function(time, stringIndex, velocity) {
     this.strings[stringIndex].pluck(time, velocity);
 };
 
-Guitar.prototype.strum = function(time, downstroke, velocity) {
+// strum strings set to be strummed by the chord
+// (e.g. for C major, don't pluck string 0)
+Guitar.prototype.strumChord = function(time, chord, downstroke, velocity) {
     console.log("Strumming with velocity " + velocity +
                 ", downstroke: " + downstroke +
                 ", at time " + time);
     if (downstroke == true) {
         for (var i = 0; i < 6; i++) {
+            if (chord[i] == -1) {
+                continue;
+            }
             this.strings[i].pluck(time, velocity);
             time += Math.random()/128;
         }
     } else {
         for (var i = 5; i >= 0; i--) {
+            if (chord[i] == -1) {
+                continue;
+            }
             this.strings[i].pluck(time, velocity);
             time += Math.random()/128;
         }
@@ -283,19 +294,19 @@ function queueStrums(startTime, chords, currentChordIndex) {
     //var timeUnit = 3/32.0;
     var timeUnit = 4/32.0;
     var currentChord = chords[currentChordIndex];
-    guitar.setChord(currentChord);
-    guitar.strum(startTime + timeUnit * 0,  true,  1.0);
-    guitar.strum(startTime + timeUnit * 4,  true,  1.0);
-    guitar.strum(startTime + timeUnit * 6,  false, 0.8);
-    guitar.strum(startTime + timeUnit * 10, false, 0.8);
-    guitar.strum(startTime + timeUnit * 12, true,  1.0);
-    guitar.strum(startTime + timeUnit * 14, false, 0.8);
-    guitar.strum(startTime + timeUnit * 16, true,  1.0);
-    guitar.strum(startTime + timeUnit * 20, true,  1.0);
-    guitar.strum(startTime + timeUnit * 22, false, 0.8);
-    guitar.strum(startTime + timeUnit * 26, false, 0.8);
-    guitar.strum(startTime + timeUnit * 28, true,  1.0);
-    guitar.strum(startTime + timeUnit * 30, false, 0.8);
+    guitar.setTab(currentChord);
+    guitar.strumChord(startTime + timeUnit * 0,  true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 4,  true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 6,  false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 10, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 12, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 14, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 16, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 20, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 22, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 26, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 28, true,  1.0);
+    guitar.strumChord(startTime + timeUnit * 30, false, 0.8);
     // second argument is string to pluck
     guitar.pluck(startTime + timeUnit * 31,   2, 0.7);
     guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7);
