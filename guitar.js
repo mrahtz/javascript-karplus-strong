@@ -246,7 +246,7 @@ Guitar.prototype.pluck = function(time, stringIndex, velocity, tab) {
 
 // strum strings set to be strummed by the chord
 // (e.g. for C major, don't pluck string 0)
-Guitar.prototype.strumChord = function(time, chord, downstroke, velocity) {
+Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
     console.log("Strumming with velocity " + velocity +
                 ", downstroke: " + downstroke +
                 ", at time " + time);
@@ -285,18 +285,18 @@ function queueStrums(startTime, chords, currentChordIndex) {
     //var timeUnit = 3/32.0;
     var timeUnit = 4/32.0;
     var currentChord = chords[currentChordIndex];
-    guitar.strumChord(startTime + timeUnit * 0,  currentChord, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 4,  currentChord, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 6,  currentChord, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 10, currentChord, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 12, currentChord, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 14, currentChord, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 16, currentChord, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 20, currentChord, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 22, currentChord, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 26, currentChord, false, 0.8);
-    guitar.strumChord(startTime + timeUnit * 28, currentChord, true,  1.0);
-    guitar.strumChord(startTime + timeUnit * 30, currentChord, false, 0.8);
+    guitar.strumChord(startTime + timeUnit * 0,  true,  1.0, currentChord);
+    guitar.strumChord(startTime + timeUnit * 4,  true,  1.0, currentChord);
+    guitar.strumChord(startTime + timeUnit * 6,  false, 0.8, currentChord);
+    guitar.strumChord(startTime + timeUnit * 10, false, 0.8, currentChord);
+    guitar.strumChord(startTime + timeUnit * 12, true,  1.0, currentChord);
+    guitar.strumChord(startTime + timeUnit * 14, false, 0.8, currentChord);
+    guitar.strumChord(startTime + timeUnit * 16, true,  1.0, currentChord);
+    guitar.strumChord(startTime + timeUnit * 20, true,  1.0, currentChord);
+    guitar.strumChord(startTime + timeUnit * 22, false, 0.8, currentChord);
+    guitar.strumChord(startTime + timeUnit * 26, false, 0.8, currentChord);
+    guitar.strumChord(startTime + timeUnit * 28, true,  1.0, currentChord);
+    guitar.strumChord(startTime + timeUnit * 30, false, 0.8, currentChord);
     // second argument is string to pluck
     guitar.pluck(startTime + timeUnit * 31,   2, 0.7, currentChord[2]);
     guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7, currentChord[1]);
