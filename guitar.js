@@ -135,8 +135,8 @@ String.prototype.pluck = function(time, velocity) {
             var periodSamples = Math.round(periodSamples_float)|0;
             var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
 
-            var targetIndex = 0;
-            while(targetIndex < frameCount) {
+            var targetIndex = targetIndex|0;
+            for (targetIndex = 0; targetIndex < frameCount; targetIndex = (targetIndex + 1)|0) {
                 var noiseIndex = (targetIndex % periodSamples)|0;
                 var heapNoiseIndex = (seedNoiseStart + noiseIndex)|0;
                 var heapTargetIndex = (targetArrayStart + targetIndex)|0;
@@ -144,7 +144,6 @@ String.prototype.pluck = function(time, velocity) {
                     velocity *
                     Math.pow(2, -Math.fround(targetIndex) / (Math.fround(frameCount)/8)) *
                     Math.fround(heap[heapNoiseIndex]);
-                targetIndex = (targetIndex + 1)|0;
             }
         }
 
