@@ -261,7 +261,7 @@ Guitar.prototype.strumChord = function(time, chord, downstroke, velocity) {
         if (chord[stringNumber] == -1) {
             continue;
         }
-        this.strings[i].pluck(time, velocity, chord[stringNumber]);
+        this.strings[stringNumber].pluck(time, velocity, chord[stringNumber]);
         time += Math.random()/128;
     }
 };
