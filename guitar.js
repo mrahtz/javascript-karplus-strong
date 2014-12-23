@@ -227,23 +227,6 @@ Guitar.E_MINOR = [ 0,  2, 2, 0, 3, 0];
 
 // To add a class method in JavaScript,
 // we add a function property to the class's 'prototype' property
-Guitar.prototype.setTab = function(chord) {
-    console.log("Setting tabs " + chord);
-    for (var i = 0; i < 6; i++) {
-        // -1 => don't touch that string
-        if (chord[i] != -1) {
-            this.strings[i].setTab(chord[i]);
-        }
-    }
-};
-
-Guitar.prototype.pluck = function(time, stringIndex, velocity, tab) {
-    console.log("Plucking string " + stringIndex +
-                ", velocity " + velocity +
-                ", time " + time); 
-    this.strings[stringIndex].pluck(time, velocity, tab);
-};
-
 // strum strings set to be strummed by the chord
 // (e.g. for C major, don't pluck string 0)
 Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
@@ -297,9 +280,8 @@ function queueStrums(startTime, chords, currentChordIndex) {
     guitar.strumChord(startTime + timeUnit * 26, false, 0.8, currentChord);
     guitar.strumChord(startTime + timeUnit * 28, true,  1.0, currentChord);
     guitar.strumChord(startTime + timeUnit * 30, false, 0.8, currentChord);
-    // second argument is string to pluck
-    guitar.pluck(startTime + timeUnit * 31,   2, 0.7, currentChord[2]);
-    guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7, currentChord[1]);
+    guitar.strings[2].pluck(startTime + timeUnit * 31,   0.7, currentChord[2]);
+    guitar.strings[1].pluck(startTime + timeUnit * 31.5, 0.7, currentChord[1]);
     var nextChord = (currentChordIndex + 1) % 4;
     var dummySource = createDummySource(audioCtx);
     dummySource.onended = function() { 
