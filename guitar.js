@@ -257,21 +257,18 @@ Guitar.prototype.strumChord = function(time, chord, downstroke, velocity) {
                 ", downstroke: " + downstroke +
                 ", at time " + time);
     if (downstroke == true) {
-        for (var i = 0; i < 6; i++) {
-            if (chord[i] == -1) {
-                continue;
-            }
-            this.strings[i].pluck(time, velocity);
-            time += Math.random()/128;
-        }
+        var pluckOrder = [0, 1, 2, 3, 4, 5];
     } else {
-        for (var i = 5; i >= 0; i--) {
-            if (chord[i] == -1) {
-                continue;
-            }
-            this.strings[i].pluck(time, velocity);
-            time += Math.random()/128;
+        var pluckOrder = [5, 4, 3, 2, 1, 0];
+    }
+
+    for (var i = 0; i < 6; i++) {
+        var stringNumber = pluckOrder[i];
+        if (chord[stringNumber] == -1) {
+            continue;
         }
+        this.strings[i].pluck(time, velocity);
+        time += Math.random()/128;
     }
 };
 
