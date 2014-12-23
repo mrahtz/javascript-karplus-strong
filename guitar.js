@@ -29,6 +29,13 @@ String.A0_HZ = 27.5;
 // so go back 9 semitones to get to C0
 String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
 
+String.prototype.setTab = function(tab) {
+    console.log("Setting tab " + tab +
+                " on string with basicHz " + this.basicHz);
+    this.hz = this.basicHz * Math.pow(2, tab/12);
+    console.log("New frequency is " + this.hz);
+};
+
 String.prototype.pluck = function(time, velocity) {
     console.log(this.hz + " Hz string being plucked" +
                 " with velocity " + velocity +
@@ -199,13 +206,6 @@ String.prototype.pluck = function(time, velocity) {
     }
 }
 
-String.prototype.setTab = function(tab) {
-    console.log("Setting tab " + tab +
-                " on string with basicHz " + this.basicHz);
-    this.hz = this.basicHz * Math.pow(2, tab/12);
-    console.log("New frequency is " + this.hz);
-};
-
 // === Guitar ===
 
 // JavaScript's class definitions are just functions
@@ -296,6 +296,7 @@ function queueStrums(startTime, chords, currentChordIndex) {
     guitar.strum(startTime + timeUnit * 26, false, 0.8);
     guitar.strum(startTime + timeUnit * 28, true,  1.0);
     guitar.strum(startTime + timeUnit * 30, false, 0.8);
+    // second argument is string to pluck
     guitar.pluck(startTime + timeUnit * 31,   2, 0.7);
     guitar.pluck(startTime + timeUnit * 31.5, 1, 0.7);
     var nextChord = (currentChordIndex + 1) % 4;
