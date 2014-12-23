@@ -223,6 +223,9 @@ function Guitar(audioCtx) {
     ]
 }
 
+// each fret represents an increase in pitch by one semitone
+// (logarithmically, one-twelth of an octave)
+// -1: don't pluck that string
 Guitar.C_MAJOR = [-1,  3, 2, 0, 0, 0];
 Guitar.G_MAJOR = [ 3,  2, 0, 0, 0, 3];
 Guitar.A_MINOR = [ 0,  0, 2, 2, 0, 0];
