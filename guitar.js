@@ -89,7 +89,8 @@ String.prototype.pluck = function(time, velocity, tab) {
         var heapBuffer = heapFloat32.buffer;
         var asm = asmFunctions(window, null, heapBuffer);
 
-        var stringDamping = 0.5;
+        var stringDampingSlider = document.getElementById("stringDamping");
+        var stringDamping = stringDampingSlider.valueAsNumber;
         
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
