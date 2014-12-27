@@ -140,7 +140,9 @@ String.prototype.pluck = function(time, velocity, tab) {
             var targetIndex = 0;
             var lastOutputSample = 0;
 
-            for (targetIndex = 0; targetIndex < frameCount; targetIndex = (targetIndex + 1)|0) {
+            for (targetIndex = 0;
+                    targetIndex < frameCount;
+                    targetIndex = (targetIndex + 1)|0) {
                 var heapTargetIndex = (targetArrayStart + targetIndex)|0;
                 if (targetIndex < periodSamples) {
                     // for the first period, feed in noise
@@ -154,7 +156,8 @@ String.prototype.pluck = function(time, velocity, tab) {
                 }
 
                 // output is low-pass filtered version of input
-                var curOutputSample = 0.5*curInputSample + (1 - 0.5)*lastOutputSample;
+                var curOutputSample =
+                    0.5*curInputSample + (1 - 0.5)*lastOutputSample;
                 heap[heapTargetIndex] = curOutputSample;
                 lastOutputSample = curOutputSample;
             }
