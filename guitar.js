@@ -88,6 +88,8 @@ String.prototype.pluck = function(time, velocity, tab) {
         // passed in as a plain ArrayBuffer
         var heapBuffer = heapFloat32.buffer;
         var asm = asmFunctions(window, null, heapBuffer);
+
+        var stringDamping = 0.5;
         
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
@@ -95,7 +97,8 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 seedNoise.length+targetArray.length-1,
                                 sampleRate,
                                 hz,
-                                velocity);
+                                velocity,
+                                stringDamping);
         
         /*
         asm.renderDecayedSine(0,
@@ -120,7 +123,9 @@ String.prototype.pluck = function(time, velocity, tab) {
 
         function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
                                      targetArrayStart, targetArrayEnd,
-                                     sampleRate, hz, velocity) {
+                                     sampleRate, hz, velocity,
+                                     stringDamping
+                                    ) {
             // coersion to indicate type of arguments
             // ORing with 0 indicates type int
             seedNoiseStart = seedNoiseStart|0;
@@ -157,7 +162,8 @@ String.prototype.pluck = function(time, velocity, tab) {
 
                 // output is low-pass filtered version of input
                 var curOutputSample =
-                    0.5*curInputSample + (1 - 0.5)*lastOutputSample;
+                    stringDamping*curInputSample 
+                    + (1 - stringDamping)*lastOutputSample;
                 heap[heapTargetIndex] = curOutputSample;
                 lastOutputSample = curOutputSample;
             }
