@@ -24,6 +24,12 @@
         <input type="range" id="stringTension" oninput="updateStringTension()"
             min="0.0" max="1.0" step="0.1" value="0.0">
         <output id="stringTensionValue">0.0</output>
+        <br />
+
+        <label for="characterVariation">Character variation</label>
+        <input type="range" id="characterVariation" oninput="updateCharacterVariation()"
+            min="0.0" max="1.0" step="0.1" value="0.5">
+        <output id="characterVariationValue">0.5</output>
     </form>
 
     <script src="guitar.js"></script>
@@ -40,6 +46,12 @@
             var stringTension = stringTensionInput.valueAsNumber;
             var output = document.getElementById("stringTensionValue");
             output.value = stringTension.toFixed(1);
+        }
+        function updateCharacterVariation() {
+            var characterVariationInput = document.getElementById("characterVariation");
+            var characterVariation = characterVariationInput.valueAsNumber;
+            var output = document.getElementById("characterVariationValue");
+            output.value = characterVariation.toFixed(1);
         }
     </script>
 

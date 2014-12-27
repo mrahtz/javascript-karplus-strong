@@ -72,6 +72,9 @@ String.prototype.pluck = function(time, velocity, tab) {
 
         var stringTensionSlider = document.getElementById("stringTension");
         var stringTension = stringTensionSlider.valueAsNumber;
+
+        var characterVariationSlider = document.getElementById("characterVariation");
+        var characterVariation = characterVariationSlider.valueAsNumber;
         
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
@@ -81,7 +84,8 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 hz,
                                 velocity,
                                 stringDamping,
-                                stringTension);
+                                stringTension,
+                                characterVariation);
         
         /*
         asm.renderDecayedSine(0,
@@ -107,7 +111,8 @@ String.prototype.pluck = function(time, velocity, tab) {
         function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
                                      targetArrayStart, targetArrayEnd,
                                      sampleRate, hz, velocity,
-                                     stringDamping, stringTension
+                                     stringDamping, stringTension,
+                                     characterVariation
                                     ) {
             // coersion to indicate type of arguments
             // ORing with 0 indicates type int
@@ -136,6 +141,10 @@ String.prototype.pluck = function(time, velocity, tab) {
                     // for the first period, feed in noise
                     var heapNoiseIndex = (seedNoiseStart + targetIndex)|0;
                     var curInputSample = Math.fround(heap[heapNoiseIndex]);
+                    // create room for character variation noise
+                    curInputSample *= (1 - characterVariation);
+                    // add character variation
+                    curInputSample += characterVariation * (-1 + 2*Math.random());
                 } else {
                     // for subsequent periods, feed in the output from
                     // about one period ago
