@@ -7,8 +7,30 @@
 </head>
 
 <body>
+
     <p id="guitarinfo"></p>
+
+    <!--
+    autocomplete="off" necessary to ensure slider returns to default value
+    -->
+    <form autocomplete="off">
+        <label for="stringDamping">String damping</label>
+        <input type="range" id="stringDamping" oninput="updateStringDamping()"
+            min="0.0" max="1.0" step="0.1" value="0.5">
+        <output id="stringDampingValue">0.5</output>
+    </form>
+
     <script src="guitar.js"></script>
+
+    <script>
+        function updateStringDamping() {
+            var stringDampingInput = document.getElementById("stringDamping");
+            var stringDamping = stringDampingInput.valueAsNumber;
+            var output = document.getElementById("stringDampingValue");
+            output.value = stringDamping.toFixed(1);
+        }
+    </script>
+
 </body>
 
 </html>
