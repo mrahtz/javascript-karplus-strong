@@ -264,8 +264,7 @@ Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
 
 // === Rhythm code ===
 
-// dummy source used to start playback of next
-// set of chords
+// dummy source used to queue next part of rhythm
 function createDummySource(audioCtx) {
     dummySource = audioCtx.createBufferSource();
     var channels = 1;
@@ -277,80 +276,88 @@ function createDummySource(audioCtx) {
     return dummySource;
 }
 
+// Create sound samples for the current part of the rhythm sequence,
+// and queue creation of the following part of the rhythm.
+// The rhythms parts have as fine a granularity as possible to enable
+// adjustment of guitar parameters with real-time feedback.
+// (The larger the parts, the longer the possible delay between
+//  parameter adjustments and samples created with the new parameters.)
 function queueSequence(sequenceN, startTime, chords, chordIndex) {
     console.log("Sequence number " + sequenceN);
     var chord = chords[chordIndex];
-    var lastTime;
 
     switch(sequenceN % 13) {
         case 0:
-            guitar.strumChord(startTime + timeUnit * 0,  true,  1.0, chord);
-            lastTime = startTime + timeUnit * 0;
+            var samplePlayTime = startTime + timeUnit * 0;
+            guitar.strumChord(samplePlayTime,  true,  1.0, chord);
             break;
         case 1:
-            guitar.strumChord(startTime + timeUnit * 4,  true,  1.0, chord);
-            lastTime = startTime + timeUnit * 4;
+            var samplePlayTime = startTime + timeUnit * 4;
+            guitar.strumChord(samplePlayTime,  true,  1.0, chord);
             break;
         case 2:
-            guitar.strumChord(startTime + timeUnit * 6,  false, 0.8, chord);
-            lastTime = startTime + timeUnit * 6;
+            var samplePlayTime = startTime + timeUnit * 6;
+            guitar.strumChord(samplePlayTime,  false, 0.8, chord);
             break;
         case 3:
-            guitar.strumChord(startTime + timeUnit * 10, false, 0.8, chord);
-            lastTime = startTime + timeUnit * 10;
+            var samplePlayTime = startTime + timeUnit * 10;
+            guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 4:
-            guitar.strumChord(startTime + timeUnit * 12, true,  1.0, chord);
-            lastTime = startTime + timeUnit * 12;
+            var samplePlayTime = startTime + timeUnit * 12;
+            guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 5:
-            guitar.strumChord(startTime + timeUnit * 14, false, 0.8, chord);
-            lastTime = startTime + timeUnit * 14;
+            var samplePlayTime = startTime + timeUnit * 14;
+            guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 6:
-            guitar.strumChord(startTime + timeUnit * 16, true,  1.0, chord);
-            lastTime = startTime + timeUnit * 16;
+            var samplePlayTime = startTime + timeUnit * 16;
+            guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 7:
-            guitar.strumChord(startTime + timeUnit * 20, true,  1.0, chord);
-            lastTime = startTime + timeUnit * 20;
+            var samplePlayTime = startTime + timeUnit * 20;
+            guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 8:
-            guitar.strumChord(startTime + timeUnit * 22, false, 0.8, chord);
-            lastTime = startTime + timeUnit * 22;
+            var samplePlayTime = startTime + timeUnit * 22;
+            guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 9:
-            guitar.strumChord(startTime + timeUnit * 26, false, 0.8, chord);
-            lastTime = startTime + timeUnit * 26;
+            var samplePlayTime = startTime + timeUnit * 26;
+            guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 10:
-            guitar.strumChord(startTime + timeUnit * 28, true,  1.0, chord);
-            lastTime = startTime + timeUnit * 28;
+            var samplePlayTime = startTime + timeUnit * 28;
+            guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 11:
-            guitar.strumChord(startTime + timeUnit * 30, false, 0.8, chord);
-            lastTime = startTime + timeUnit * 30;
+            var samplePlayTime = startTime + timeUnit * 30;
+            guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 12:
-            guitar.strings[2].pluck(startTime + timeUnit * 31,   0.7, chord[2]);
-            guitar.strings[1].pluck(startTime + timeUnit * 31.5, 0.7, chord[1]);
-            lastTime = startTime + timeUnit * 31.5;
+
+            var samplePlayTime = startTime + timeUnit * 31;
+            guitar.strings[2].pluck(samplePlayTime,   0.7, chord[2]);
+
+            var samplePlayTime = startTime + timeUnit * 31.5;
+            guitar.strings[1].pluck(samplePlayTime, 0.7, chord[1]);
+
             chordIndex = (chordIndex + 1) % 4;
             startTime += timeUnit*32;
+
             break;
     }
 
-    sequenceN += 1;
-    var dummySource = createDummySource(audioCtx);
-    dummySource.onended = function() { 
-        queueSequence(sequenceN, startTime, chords, chordIndex);
+    var queuerSource = createDummySource(audioCtx);
+    queuerSource.onended = function() { 
+        queueSequence(sequenceN + 1, startTime, chords, chordIndex);
     };
-    // lastTime is the time at which the strum we've
-    // just generated will be played
-    // by generating the strum that follows the one we've just generated
-    // at the time that the current strum plays, we should allow enough time
-    // to generate the next strum /before/ it actually comes time to play it
-    dummySource.start(lastTime);
+    // generate the sample following the one we've just generated
+    // at the same time as the current sample starts playing
+    // (should allow enough time for that next sample to be generated
+    //  before it comes time to play it)
+    queuerSource.start(samplePlayTime);
 }
 
 // webkitAudioContext for Webkit browsers
