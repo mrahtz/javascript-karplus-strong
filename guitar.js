@@ -69,6 +69,9 @@ String.prototype.pluck = function(time, velocity, tab) {
 
         var stringDampingSlider = document.getElementById("stringDamping");
         var stringDamping = stringDampingSlider.valueAsNumber;
+
+        var stringTensionSlider = document.getElementById("stringTension");
+        var stringTension = stringTensionSlider.valueAsNumber;
         
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
@@ -77,7 +80,8 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 sampleRate,
                                 hz,
                                 velocity,
-                                stringDamping);
+                                stringDamping,
+                                stringTension);
         
         /*
         asm.renderDecayedSine(0,
@@ -103,7 +107,7 @@ String.prototype.pluck = function(time, velocity, tab) {
         function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
                                      targetArrayStart, targetArrayEnd,
                                      sampleRate, hz, velocity,
-                                     stringDamping
+                                     stringDamping, stringTension
                                     ) {
             // coersion to indicate type of arguments
             // ORing with 0 indicates type int
@@ -134,9 +138,11 @@ String.prototype.pluck = function(time, velocity, tab) {
                     var curInputSample = Math.fround(heap[heapNoiseIndex]);
                 } else {
                     // for subsequent periods, feed in the output from
-                    // one period ago
+                    // about one period ago
                     var lastPeriodIndex = heapTargetIndex - periodSamples;
-                    var curInputSample = Math.fround(heap[lastPeriodIndex]);
+                    var skipFromTension = Math.round(stringTension * periodSamples);
+                    var inputIndex = lastPeriodIndex + skipFromTension;
+                    var curInputSample = Math.fround(heap[inputIndex]);
                 }
 
                 // output is low-pass filtered version of input
