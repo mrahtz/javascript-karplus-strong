@@ -1,3 +1,5 @@
+var beatLength = 4/32;
+
 // === String ===
 
 function String(audioCtx, octave, semitone) {
@@ -32,7 +34,7 @@ String.prototype.pluck = function(time, velocity, tab) {
     console.log(this.basicHz + " Hz string being plucked" +
                 " with tab " + tab +
                 " with velocity " + velocity +
-                " at time " + time + 
+                " at beat " + (time/beatLength).toFixed(2) + 
                 ", actual time " + this.audioCtx.currentTime);
 
     var hz = this.basicHz * Math.pow(2, tab/12);
@@ -243,7 +245,7 @@ Guitar.E_MINOR = [ 0,  2, 2, 0, 3, 0];
 Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
     console.log("Strumming with velocity " + velocity +
                 ", downstroke: " + downstroke +
-                ", at time " + time);
+                ", at beat " + (time/beatLength));
     if (downstroke == true) {
         var pluckOrder = [0, 1, 2, 3, 4, 5];
     } else {
@@ -275,33 +277,79 @@ function createDummySource(audioCtx) {
     return dummySource;
 }
 
-function queueStrums(startTime, chords, currentChordIndex) {
-    //var timeUnit = 3/32.0;
-    var timeUnit = 4/32.0;
+function queueStrums(startTime, chords, currentChordIndex, sequence) {
+    console.log("Sequence number " + sequence);
+    var timeUnit = beatLength;
     var currentChord = chords[currentChordIndex];
-    guitar.strumChord(startTime + timeUnit * 0,  true,  1.0, currentChord);
-    guitar.strumChord(startTime + timeUnit * 4,  true,  1.0, currentChord);
-    guitar.strumChord(startTime + timeUnit * 6,  false, 0.8, currentChord);
-    guitar.strumChord(startTime + timeUnit * 10, false, 0.8, currentChord);
-    guitar.strumChord(startTime + timeUnit * 12, true,  1.0, currentChord);
-    guitar.strumChord(startTime + timeUnit * 14, false, 0.8, currentChord);
-    guitar.strumChord(startTime + timeUnit * 16, true,  1.0, currentChord);
-    guitar.strumChord(startTime + timeUnit * 20, true,  1.0, currentChord);
-    guitar.strumChord(startTime + timeUnit * 22, false, 0.8, currentChord);
-    guitar.strumChord(startTime + timeUnit * 26, false, 0.8, currentChord);
-    guitar.strumChord(startTime + timeUnit * 28, true,  1.0, currentChord);
-    guitar.strumChord(startTime + timeUnit * 30, false, 0.8, currentChord);
-    guitar.strings[2].pluck(startTime + timeUnit * 31,   0.7, currentChord[2]);
-    guitar.strings[1].pluck(startTime + timeUnit * 31.5, 0.7, currentChord[1]);
-    var nextChord = (currentChordIndex + 1) % 4;
+    var lastTime;
+    switch(sequence % 13) {
+        case 0:
+            guitar.strumChord(startTime + timeUnit * 0,  true,  1.0, currentChord);
+            lastTime = startTime + timeUnit * 0;
+            break;
+        case 1:
+            guitar.strumChord(startTime + timeUnit * 4,  true,  1.0, currentChord);
+            lastTime = startTime + timeUnit * 4;
+            break;
+        case 2:
+            guitar.strumChord(startTime + timeUnit * 6,  false, 0.8, currentChord);
+            lastTime = startTime + timeUnit * 6;
+            break;
+        case 3:
+            guitar.strumChord(startTime + timeUnit * 10, false, 0.8, currentChord);
+            lastTime = startTime + timeUnit * 10;
+            break;
+        case 4:
+            guitar.strumChord(startTime + timeUnit * 12, true,  1.0, currentChord);
+            lastTime = startTime + timeUnit * 12;
+            break;
+        case 5:
+            guitar.strumChord(startTime + timeUnit * 14, false, 0.8, currentChord);
+            lastTime = startTime + timeUnit * 14;
+            break;
+        case 6:
+            guitar.strumChord(startTime + timeUnit * 16, true,  1.0, currentChord);
+            lastTime = startTime + timeUnit * 16;
+            break;
+        case 7:
+            guitar.strumChord(startTime + timeUnit * 20, true,  1.0, currentChord);
+            lastTime = startTime + timeUnit * 20;
+            break;
+        case 8:
+            guitar.strumChord(startTime + timeUnit * 22, false, 0.8, currentChord);
+            lastTime = startTime + timeUnit * 22;
+            break;
+        case 9:
+            guitar.strumChord(startTime + timeUnit * 26, false, 0.8, currentChord);
+            lastTime = startTime + timeUnit * 26;
+            break;
+        case 10:
+            guitar.strumChord(startTime + timeUnit * 28, true,  1.0, currentChord);
+            lastTime = startTime + timeUnit * 28;
+            break;
+        case 11:
+            guitar.strumChord(startTime + timeUnit * 30, false, 0.8, currentChord);
+            lastTime = startTime + timeUnit * 30;
+            break;
+        case 12:
+            guitar.strings[2].pluck(startTime + timeUnit * 31,   0.7, currentChord[2]);
+            guitar.strings[1].pluck(startTime + timeUnit * 31.5, 0.7, currentChord[1]);
+            lastTime = startTime + timeUnit * 31.5;
+            currentChordIndex = (currentChordIndex + 1) % 4;
+            startTime += timeUnit*32;
+            break;
+    }
+    sequence += 1;
     var dummySource = createDummySource(audioCtx);
     dummySource.onended = function() { 
-        queueStrums(startTime + timeUnit*32, chords, nextChord);
+        queueStrums(startTime, chords, currentChordIndex, sequence);
     };
-    // start queueing the next set of strums halfway through
-    // the current set of strums, so that we definitely have time
-    // to set it all up before the current set finishes
-    dummySource.start(startTime + timeUnit*16);
+    // lastTime is the time at which the strum we've
+    // just generated will be played
+    // by generating the strum that follows the one we've just generated
+    // at the time that the current strum plays, we should allow enough time
+    // to generate the next strum /before/ it actually comes time to play it
+    dummySource.start(lastTime);
 }
 
 // webkitAudioContext for Webkit browsers
@@ -323,4 +371,4 @@ chords = [Guitar.C_MAJOR,
           Guitar.G_MAJOR,
           Guitar.A_MINOR,
           Guitar.E_MINOR];
-queueStrums(0, chords, 0);
+queueStrums(0, chords, 0, 0);
