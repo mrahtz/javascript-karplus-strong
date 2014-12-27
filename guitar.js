@@ -6,6 +6,9 @@ function String(audioCtx, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
     this.basicHz = this.basicHz.toFixed(2);
+
+    // this is only used in a magical calculation of filter coefficients
+    this.semitoneIndex = octave*12 + semitone - 9;
     
     var basicPeriod = 1/this.basicHz;
     var basicPeriodSamples = Math.round(basicPeriod * audioCtx.sampleRate);
@@ -54,6 +57,38 @@ String.prototype.pluck = function(time, velocity, tab) {
     // start playing at 'time'
     bufferSource.start(time);
 
+    var stringDampingSlider = document.getElementById("stringDamping");
+    var stringDamping = stringDampingSlider.valueAsNumber;
+
+    var stringDampingVariationSlider =
+        document.getElementById("stringDampingVariation");
+    var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
+
+    var magicCalculationRadio = document.getElementById("magicCalculation");
+    var directCalculationRadio = document.getElementById("directCalculation");
+    if (magicCalculationRadio.checked) {
+        var stringDampingCalculation = "magic";
+    } else if (directCalculationRadio.checked) {
+        var stringDampingCalculation = "direct";
+    }
+    
+    var stringDampingVariationSlider =
+        document.getElementById("stringDampingVariation");
+    var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
+
+    if (stringDampingCalculation == "direct") {
+        var smoothingFactor = stringDamping;
+    } else if (stringDampingCalculation == "magic") {
+        // this is copied verbatim from the flash one
+        // is magical, don't know how it works
+        var noteNumber = (this.semitoneIndex + tab - 19)/44;
+        var smoothingFactor = 
+            stringDamping
+            + Math.pow(noteNumber, 0.5) * (1 - stringDamping) * 0.5
+            + (1 - stringDamping) * Math.random() * stringDampingVariation;
+    }
+    console.log(smoothingFactor);
+
     // asm.js spec at http://asmjs.org/spec/latest/
     function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity) {
         var heapFloat32Size = targetArray.length + seedNoise.length;
@@ -66,9 +101,6 @@ String.prototype.pluck = function(time, velocity, tab) {
         // passed in as a plain ArrayBuffer
         var heapBuffer = heapFloat32.buffer;
         var asm = asmFunctions(window, null, heapBuffer);
-
-        var stringDampingSlider = document.getElementById("stringDamping");
-        var stringDamping = stringDampingSlider.valueAsNumber;
 
         var stringTensionSlider = document.getElementById("stringTension");
         var stringTension = stringTensionSlider.valueAsNumber;
@@ -83,7 +115,7 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 sampleRate,
                                 hz,
                                 velocity,
-                                stringDamping,
+                                smoothingFactor,
                                 stringTension,
                                 characterVariation);
         
@@ -111,7 +143,7 @@ String.prototype.pluck = function(time, velocity, tab) {
         function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
                                      targetArrayStart, targetArrayEnd,
                                      sampleRate, hz, velocity,
-                                     stringDamping, stringTension,
+                                     smoothingFactor, stringTension,
                                      characterVariation
                                     ) {
             // coersion to indicate type of arguments
@@ -156,8 +188,8 @@ String.prototype.pluck = function(time, velocity, tab) {
 
                 // output is low-pass filtered version of input
                 var curOutputSample =
-                    stringDamping*curInputSample 
-                    + (1 - stringDamping)*lastOutputSample;
+                    smoothingFactor*curInputSample 
+                    + (1 - smoothingFactor)*lastOutputSample;
                 heap[heapTargetIndex] = curOutputSample;
                 lastOutputSample = curOutputSample;
             }
@@ -336,6 +368,7 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
             chordIndex = (chordIndex + 1) % 4;
             startTime += timeUnit*32;
 
+            return;
             break;
     }
 
