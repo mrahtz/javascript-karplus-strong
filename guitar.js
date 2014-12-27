@@ -297,6 +297,9 @@ function queueStrums(startTime, chords, currentChordIndex) {
     dummySource.onended = function() { 
         queueStrums(startTime + timeUnit*32, chords, nextChord);
     };
+    // start queueing the next set of strums halfway through
+    // the current set of strums, so that we definitely have time
+    // to set it all up before the current set finishes
     dummySource.start(startTime + timeUnit*16);
 }
 
