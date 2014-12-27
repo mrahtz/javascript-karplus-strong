@@ -54,31 +54,6 @@ String.prototype.pluck = function(time, velocity, tab) {
     // start playing at 'time'
     bufferSource.start(time);
 
-    function renderDecayedSine(targetArray, sampleRate, hz, velocity) {
-        var frameCount = targetArray.length;
-        for (var i = 0; i < frameCount; i++) {
-            targetArray[i] =
-                velocity *
-                Math.pow(2, -i/(frameCount/8)) *
-                Math.sin(2 * Math.PI * hz * i/sampleRate);
-        }
-        // doesn't seem to make much effect
-        /*for (var i = 0; i < bufferChannelData.length-2; i++) {
-            bufferChannelData[i] = 0.5*(bufferChannelData[i+1] + bufferChannelData[i+2]);
-        }*/
-    }
-
-    function renderKarplusStrong(targetArray, seedNoise, sampleRate, hz, velocity) {
-        var period = 1/hz;
-        var periodSamples = period * sampleRate;
-        var frameCount = targetArray.length;
-        for (var i = 0; i < frameCount; i++) {
-            var noiseIndex = i % periodSamples;
-            targetArray[i] =
-                seedNoise[noiseIndex];
-        }
-    }
-
     // asm.js spec at http://asmjs.org/spec/latest/
     function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity) {
         var heapFloat32Size = targetArray.length + seedNoise.length;
