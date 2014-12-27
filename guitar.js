@@ -49,6 +49,7 @@ String.prototype.pluck = function(time, velocity, tab) {
     asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, velocity);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
+    // start playing at 'time'
     bufferSource.start(time);
 
     function renderDecayedSine(targetArray, sampleRate, hz, velocity) {
