@@ -49,7 +49,6 @@ String.prototype.pluck = function(time, velocity, tab) {
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
-    console.log(this);
     asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, velocity, this);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
@@ -100,15 +99,12 @@ String.prototype.pluck = function(time, velocity, tab) {
             // this is copied verbatim from the flash one
             // is magical, don't know how it works
             var noteNumber = (string.semitoneIndex + tab - 19)/44;
-            console.log('semitoneIndex is ' + string.semitoneIndex);
-            console.log('noteNumber is ' + noteNumber);
             var smoothingFactor = 
                 stringDamping
                 + Math.pow(noteNumber, 0.5) * (1 - stringDamping) * 0.5
                 + (1 - stringDamping) * Math.random() * stringDampingVariation;
 
         }
-        console.log('smoothingFactor is ' + smoothingFactor);
         
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
