@@ -55,40 +55,8 @@ String.prototype.pluck = function(time, velocity, tab) {
     // start playing at 'time'
     bufferSource.start(time);
 
-    var stringDampingSlider = document.getElementById("stringDamping");
-    var stringDamping = stringDampingSlider.valueAsNumber;
-
-    var stringDampingVariationSlider =
-        document.getElementById("stringDampingVariation");
-    var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
-
-    var magicCalculationRadio = document.getElementById("magicCalculation");
-    var directCalculationRadio = document.getElementById("directCalculation");
-    if (magicCalculationRadio.checked) {
-        var stringDampingCalculation = "magic";
-    } else if (directCalculationRadio.checked) {
-        var stringDampingCalculation = "direct";
-    }
-    
-    var stringDampingVariationSlider =
-        document.getElementById("stringDampingVariation");
-    var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
-
-    if (stringDampingCalculation == "direct") {
-        var smoothingFactor = stringDamping;
-    } else if (stringDampingCalculation == "magic") {
-        // this is copied verbatim from the flash one
-        // is magical, don't know how it works
-        var noteNumber = (this.semitoneIndex + tab - 19)/44;
-        var smoothingFactor = 
-            stringDamping
-            + Math.pow(noteNumber, 0.5) * (1 - stringDamping) * 0.5
-            + (1 - stringDamping) * Math.random() * stringDampingVariation;
-    }
-    console.log(smoothingFactor);
-
     // asm.js spec at http://asmjs.org/spec/latest/
-    function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity) {
+    function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity, smoothingFactor) {
         var heapFloat32Size = targetArray.length + seedNoise.length;
         var heapFloat32 = new Float32Array(heapFloat32Size);
         for (var i = 0; i < seedNoise.length; i++) {
@@ -105,6 +73,37 @@ String.prototype.pluck = function(time, velocity, tab) {
 
         var characterVariationSlider = document.getElementById("characterVariation");
         var characterVariation = characterVariationSlider.valueAsNumber;
+
+        var stringDampingSlider = document.getElementById("stringDamping");
+        var stringDamping = stringDampingSlider.valueAsNumber;
+
+        var stringDampingVariationSlider =
+            document.getElementById("stringDampingVariation");
+        var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
+
+        var magicCalculationRadio = document.getElementById("magicCalculation");
+        var directCalculationRadio = document.getElementById("directCalculation");
+        if (magicCalculationRadio.checked) {
+            var stringDampingCalculation = "magic";
+        } else if (directCalculationRadio.checked) {
+            var stringDampingCalculation = "direct";
+        }
+        
+        var stringDampingVariationSlider =
+            document.getElementById("stringDampingVariation");
+        var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
+
+        if (stringDampingCalculation == "direct") {
+            var smoothingFactor = stringDamping;
+        } else if (stringDampingCalculation == "magic") {
+            // this is copied verbatim from the flash one
+            // is magical, don't know how it works
+            var noteNumber = (this.semitoneIndex + tab - 19)/44;
+            var smoothingFactor = 
+                stringDamping
+                + Math.pow(noteNumber, 0.5) * (1 - stringDamping) * 0.5
+                + (1 - stringDamping) * Math.random() * stringDampingVariation;
+        }
         
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
@@ -138,6 +137,8 @@ String.prototype.pluck = function(time, velocity, tab) {
         // so first need to get a Float32 of it
         var heap = new Float32Array(heapBuffer);
 
+        // the "smoothing factor" parameter is the coefficient
+        // used on the terms in the low-pass filter
         function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
                                      targetArrayStart, targetArrayEnd,
                                      sampleRate, hz, velocity,
@@ -366,7 +367,6 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
             chordIndex = (chordIndex + 1) % 4;
             startTime += timeUnit*32;
 
-            return;
             break;
     }
 
