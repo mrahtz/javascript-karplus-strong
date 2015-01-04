@@ -49,8 +49,6 @@ String.prototype.pluck = function(time, velocity, tab) {
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
-    //renderDecayedSine(bufferChannelData, sampleRate, hz, velocity);
-    //renderKarplusStrong(bufferChannelData, this.seedNoise, sampleRate, hz, velocity);
     asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, velocity);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
