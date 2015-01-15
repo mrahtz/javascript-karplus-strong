@@ -248,7 +248,7 @@ String.prototype.pluck = function(time, velocity, tab) {
             targetArrayL[i] = heapFloat32[heapOffsets.targetLStart+i];
         }
         for (var i = 0; i < targetArrayL.length; i++) {
-            targetArrayR[i] = heapFloat32[heapOffsets.targetLStart+i];
+            targetArrayR[i] = heapFloat32[heapOffsets.targetRStart+i];
         }
     }
 
@@ -270,8 +270,10 @@ String.prototype.pluck = function(time, velocity, tab) {
             // ORing with 0 indicates type int
             var seedNoiseStart = heapOffsets.seedStart|0;
             var seedNoiseEnd = heapOffsets.seedEnd|0;
-            var targetArrayStart = heapOffsets.targetLStart|0;
-            var targetArrayEnd = heapOffsets.targetLEnd|0;
+            var targetArrayLStart = heapOffsets.targetLStart|0;
+            var targetArrayLEnd = heapOffsets.targetLEnd|0;
+            var targetArrayRStart = heapOffsets.targetRStart|0;
+            var targetArrayREnd = heapOffsets.targetREnd|0;
             sampleRate = sampleRate|0;
             hz = hz|0;
 
@@ -281,14 +283,15 @@ String.prototype.pluck = function(time, velocity, tab) {
             var periodSamples_float = Math.fround(period*sampleRate);
             // int
             var periodSamples = Math.round(periodSamples_float)|0;
-            var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
+            var frameCount = (targetArrayLEnd-targetArrayLStart+1)|0;
             var targetIndex = 0;
             var lastOutputSample = 0;
 
             for (targetIndex = 0;
                     targetIndex < frameCount;
                     targetIndex++) {
-                var heapTargetIndex = (targetArrayStart + targetIndex)|0;
+                var heapTargetIndexL = (targetArrayLStart + targetIndex)|0;
+                var heapTargetIndexR = (targetArrayRStart + targetIndex)|0;
                 if (targetIndex < periodSamples) {
                     // for the first period, feed in noise
                     var heapNoiseIndex = (seedNoiseStart + targetIndex)|0;
@@ -300,7 +303,7 @@ String.prototype.pluck = function(time, velocity, tab) {
                 } else {
                     // for subsequent periods, feed in the output from
                     // about one period ago
-                    var lastPeriodIndex = heapTargetIndex - periodSamples;
+                    var lastPeriodIndex = heapTargetIndexL - periodSamples;
                     var skipFromTension = Math.round(stringTension * periodSamples);
                     var inputIndex = lastPeriodIndex + skipFromTension;
                     var curInputSample = Math.fround(heap[inputIndex]);
@@ -310,7 +313,8 @@ String.prototype.pluck = function(time, velocity, tab) {
                 var curOutputSample =
                     smoothingFactor*curInputSample 
                     + (1 - smoothingFactor)*lastOutputSample;
-                heap[heapTargetIndex] = curOutputSample;
+                heap[heapTargetIndexL] = curOutputSample;
+                heap[heapTargetIndexR] = curOutputSample;
                 lastOutputSample = curOutputSample;
             }
         }
