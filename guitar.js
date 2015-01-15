@@ -1,4 +1,7 @@
-var timeUnit = 4/32;
+// this was derived experimentally to match Andre Michelle's
+// I've no idea how it works out as this...
+// it doesn't seem to appear in the code anywhere
+var timeUnit = 0.12;
 
 // === resonate ===
 
