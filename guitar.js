@@ -71,13 +71,15 @@ function resonate(channelBuffer) {
 
 // === String ===
 
-function String(audioCtx, octave, semitone) {
+function String(audioCtx, stringN, octave, semitone) {
     this.audioCtx = audioCtx;
     this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
     this.basicHz = this.basicHz.toFixed(2);
 
     // this is only used in a magical calculation of filter coefficients
     this.semitoneIndex = octave*12 + semitone - 9;
+    // also magic, used for stereo spread
+    this.prePan = (stringN - 2.5) * 0.4;
     
     var basicPeriod = 1/this.basicHz;
     var basicPeriodSamples = Math.round(basicPeriod * audioCtx.sampleRate);
@@ -120,7 +122,7 @@ String.prototype.pluck = function(time, velocity, tab) {
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
     var hz = this.basicHz * Math.pow(2, tab/12);
 
-    asmWrapper(buffer, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options);
+    asmWrapper(buffer, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options, this);
     if (options.body == "simple") {
         resonate(buffer);
     }
@@ -198,7 +200,7 @@ String.prototype.pluck = function(time, velocity, tab) {
     }
 
     // asm.js spec at http://asmjs.org/spec/latest/
-    function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, velocity, options) {
+    function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, velocity, options, string) {
         var targetArrayL = channelBuffer.getChannelData(0);
         var targetArrayR = channelBuffer.getChannelData(1);
 
@@ -244,11 +246,14 @@ String.prototype.pluck = function(time, velocity, tab) {
                               hz,
                               velocity);
         */
+        var stereoSpread = 1 * string.prePan;
+        var gainL = (1 - stereoSpread) * 0.5;
+        var gainR = (1 + stereoSpread) * 0.5;
         for (var i = 0; i < targetArrayL.length; i++) {
-            targetArrayL[i] = heapFloat32[heapOffsets.targetLStart+i];
+            targetArrayL[i] = heapFloat32[heapOffsets.targetLStart+i] * gainL;
         }
         for (var i = 0; i < targetArrayL.length; i++) {
-            targetArrayR[i] = heapFloat32[heapOffsets.targetRStart+i];
+            targetArrayR[i] = heapFloat32[heapOffsets.targetRStart+i] * gainR;
         }
     }
 
@@ -366,12 +371,12 @@ function Guitar(audioCtx) {
     // 'strings' becomes a 'property'
     // (an instance variable)
     this.strings = [
-        new String(audioCtx, 2, 4),   // E2
-        new String(audioCtx, 2, 9),   // A2
-        new String(audioCtx, 3, 2),   // D3
-        new String(audioCtx, 3, 7),   // G3
-        new String(audioCtx, 3, 11),  // B3
-        new String(audioCtx, 4, 4)    // E4
+        new String(audioCtx, 0, 2, 4),   // E2
+        new String(audioCtx, 1, 2, 9),   // A2
+        new String(audioCtx, 2, 3, 2),   // D3
+        new String(audioCtx, 3, 3, 7),   // G3
+        new String(audioCtx, 4, 3, 11),  // B3
+        new String(audioCtx, 5, 4, 4)    // E4
     ]
 }
 
