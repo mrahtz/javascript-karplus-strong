@@ -7,7 +7,8 @@ var timeUnit = 0.12;
 
 // samples: a Float32Array containing samples to apply
 // to a guitar body
-function resonate(samples) {
+function resonate(channelBuffer) {
+    var samples = channelBuffer.getChannelData(0);
     // asm.js requires all data in/out of function to
     // be done through heap object
     // from the asm.js spec, it sounds like the heap must be
@@ -114,16 +115,14 @@ String.prototype.pluck = function(time, velocity, tab) {
     var frameCount = audioCtx.sampleRate;
     var sampleRate = audioCtx.sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
-    // getChannelData returns a Float32Array, so no performance problems these
-    var bufferChannelData = buffer.getChannelData(0);
 
     var options = getOptions();
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
     var hz = this.basicHz * Math.pow(2, tab/12);
 
-    asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options);
+    asmWrapper(buffer, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options);
     if (options.body == "simple") {
-        resonate(bufferChannelData);
+        resonate(buffer);
     }
 
     bufferSource.buffer = buffer;
@@ -199,7 +198,9 @@ String.prototype.pluck = function(time, velocity, tab) {
     }
 
     // asm.js spec at http://asmjs.org/spec/latest/
-    function asmWrapper(targetArray, seedNoise, sampleRate, hz, smoothingFactor, velocity, options) {
+    function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, velocity, options) {
+        var targetArray = channelBuffer.getChannelData(0);
+
         var heapFloat32Size = targetArray.length + seedNoise.length;
         var heapFloat32 = new Float32Array(heapFloat32Size);
         for (var i = 0; i < seedNoise.length; i++) {
