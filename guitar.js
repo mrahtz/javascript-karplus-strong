@@ -49,14 +49,70 @@ String.prototype.pluck = function(time, velocity, tab) {
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
-    asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, velocity, this);
+    var options = getOptions();
+    var smoothingFactor = calculateSmoothingFactor(this, tab, options);
+    asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options);
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     // start playing at 'time'
     bufferSource.start(time);
 
+    function calculateSmoothingFactor(string, tab, options) {
+        var smoothingFactor;
+        if (options.stringDampingCalculation == "direct") {
+            smoothingFactor = options.stringDamping;
+        } else if (options.stringDampingCalculation == "magic") {
+            // this is copied verbatim from the flash one
+            // is magical, don't know how it works
+            var noteNumber = (string.semitoneIndex + tab - 19)/44;
+            smoothingFactor = 
+                options.stringDamping
+                + Math.pow(noteNumber, 0.5) * (1 - options.stringDamping) * 0.5
+                + (1 - options.stringDamping)
+                    * Math.random()
+                    * options.stringDampingVariation;
+        }
+        return smoothingFactor;
+    }
+
+    function getOptions() {
+        var stringTensionSlider =
+            document.getElementById("stringTension");
+        var stringTension = stringTensionSlider.valueAsNumber;
+
+        var characterVariationSlider =
+            document.getElementById("characterVariation");
+        var characterVariation = characterVariationSlider.valueAsNumber;
+
+        var stringDampingSlider =
+            document.getElementById("stringDamping");
+        var stringDamping = stringDampingSlider.valueAsNumber;
+
+        var stringDampingVariationSlider =
+            document.getElementById("stringDampingVariation");
+        var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
+
+        var magicCalculationRadio =
+            document.getElementById("magicCalculation");
+        var directCalculationRadio =
+            document.getElementById("directCalculation");
+        if (magicCalculationRadio.checked) {
+            var stringDampingCalculation = "magic";
+        } else if (directCalculationRadio.checked) {
+            var stringDampingCalculation = "direct";
+        }
+        
+        return {
+            stringTension: stringTension,
+            characterVariation: characterVariation,
+            stringDamping: stringDamping,
+            stringDampingVariation: stringDampingVariation,
+            stringDampingCalculation: stringDampingCalculation
+        };
+    }
+
     // asm.js spec at http://asmjs.org/spec/latest/
-    function asmWrapper(targetArray, seedNoise, sampleRate, hz, velocity, string) {
+    function asmWrapper(targetArray, seedNoise, sampleRate, hz, smoothingFactor, velocity, options) {
         var heapFloat32Size = targetArray.length + seedNoise.length;
         var heapFloat32 = new Float32Array(heapFloat32Size);
         for (var i = 0; i < seedNoise.length; i++) {
@@ -68,44 +124,6 @@ String.prototype.pluck = function(time, velocity, tab) {
         var heapBuffer = heapFloat32.buffer;
         var asm = asmFunctions(window, null, heapBuffer);
 
-        var stringTensionSlider = document.getElementById("stringTension");
-        var stringTension = stringTensionSlider.valueAsNumber;
-
-        var characterVariationSlider = document.getElementById("characterVariation");
-        var characterVariation = characterVariationSlider.valueAsNumber;
-
-        var stringDampingSlider = document.getElementById("stringDamping");
-        var stringDamping = stringDampingSlider.valueAsNumber;
-
-        var stringDampingVariationSlider =
-            document.getElementById("stringDampingVariation");
-        var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
-
-        var magicCalculationRadio = document.getElementById("magicCalculation");
-        var directCalculationRadio = document.getElementById("directCalculation");
-        if (magicCalculationRadio.checked) {
-            var stringDampingCalculation = "magic";
-        } else if (directCalculationRadio.checked) {
-            var stringDampingCalculation = "direct";
-        }
-        
-        var stringDampingVariationSlider =
-            document.getElementById("stringDampingVariation");
-        var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
-
-        if (stringDampingCalculation == "direct") {
-            var smoothingFactor = stringDamping;
-        } else if (stringDampingCalculation == "magic") {
-            // this is copied verbatim from the flash one
-            // is magical, don't know how it works
-            var noteNumber = (string.semitoneIndex + tab - 19)/44;
-            var smoothingFactor = 
-                stringDamping
-                + Math.pow(noteNumber, 0.5) * (1 - stringDamping) * 0.5
-                + (1 - stringDamping) * Math.random() * stringDampingVariation;
-
-        }
-        
         asm.renderKarplusStrong(0,
                                 seedNoise.length-1,
                                 seedNoise.length,
@@ -114,8 +132,8 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 hz,
                                 velocity,
                                 smoothingFactor,
-                                stringTension,
-                                characterVariation);
+                                options.stringTension,
+                                options.characterVariation);
         
         /*
         asm.renderDecayedSine(0,
