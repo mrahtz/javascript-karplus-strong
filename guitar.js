@@ -110,7 +110,7 @@ String.prototype.pluck = function(time, velocity, tab) {
                 ", actual time " + this.audioCtx.currentTime);
 
     var bufferSource = this.audioCtx.createBufferSource();
-    var channels = 1;
+    var channels = 2;
     // 1 second buffer
     var frameCount = audioCtx.sampleRate;
     var sampleRate = audioCtx.sampleRate;
@@ -199,9 +199,12 @@ String.prototype.pluck = function(time, velocity, tab) {
 
     // asm.js spec at http://asmjs.org/spec/latest/
     function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, velocity, options) {
-        var targetArray = channelBuffer.getChannelData(0);
+        var targetArrayL = channelBuffer.getChannelData(0);
+        var targetArrayR = channelBuffer.getChannelData(1);
 
-        var heapFloat32Size = targetArray.length + seedNoise.length;
+        var heapFloat32Size = seedNoise.length
+                              + targetArrayL.length
+                              + targetArrayR.length;
         var heapFloat32 = new Float32Array(heapFloat32Size);
         for (var i = 0; i < seedNoise.length; i++) {
             heapFloat32[i] = seedNoise[i];
@@ -214,9 +217,17 @@ String.prototype.pluck = function(time, velocity, tab) {
 
         var heapOffsets = {
             seedStart: 0,
-            seedEnd: seedNoise.length-1,
-            targetStart: seedNoise.length,
-            targetEnd: seedNoise.length+targetArray.length-1
+            seedEnd: seedNoise.length - 1,
+            targetLStart: seedNoise.length,
+            targetLEnd: seedNoise.length
+                       + targetArrayL.length
+                       - 1,
+            targetRStart: seedNoise.length
+                          + targetArrayL.length,
+            targetREnd: seedNoise.length
+                        + targetArrayL.length
+                        + targetArrayR.length
+                        - 1
         };
 
         asm.renderKarplusStrong(heapOffsets,
@@ -233,8 +244,11 @@ String.prototype.pluck = function(time, velocity, tab) {
                               hz,
                               velocity);
         */
-        for (var i = 0; i < targetArray.length; i++) {
-            targetArray[i] = heapFloat32[seedNoise.length+i];
+        for (var i = 0; i < targetArrayL.length; i++) {
+            targetArrayL[i] = heapFloat32[heapOffsets.targetLStart+i];
+        }
+        for (var i = 0; i < targetArrayL.length; i++) {
+            targetArrayR[i] = heapFloat32[heapOffsets.targetLStart+i];
         }
     }
 
@@ -254,10 +268,10 @@ String.prototype.pluck = function(time, velocity, tab) {
                                     ) {
             // coersion to indicate type of arguments
             // ORing with 0 indicates type int
-            var seedNoiseStart = heapOffsets.noiseStart|0;
-            var seedNoiseEnd = heapOffsets.noiseEnd|0;
-            var targetArrayStart = heapOffsets.targetStart|0;
-            var targetArrayEnd = heapOffsets.targetEnd|0;
+            var seedNoiseStart = heapOffsets.seedStart|0;
+            var seedNoiseEnd = heapOffsets.seedEnd|0;
+            var targetArrayStart = heapOffsets.targetLStart|0;
+            var targetArrayEnd = heapOffsets.targetLEnd|0;
             sampleRate = sampleRate|0;
             hz = hz|0;
 
