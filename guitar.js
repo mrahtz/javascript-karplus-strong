@@ -79,6 +79,7 @@ function String(audioCtx, stringN, octave, semitone) {
     // this is only used in a magical calculation of filter coefficients
     this.semitoneIndex = octave*12 + semitone - 9;
     // also magic, used for stereo spread
+    // from -1 for first string to +1 for last
     this.prePan = (stringN - 2.5) * 0.4;
     
     var basicPeriod = 1/this.basicHz;
@@ -244,7 +245,11 @@ String.prototype.pluck = function(time, velocity, tab) {
                               velocity);
         */
 
+        // string.prePan is set individually for each string such that
+        // the lowest note has a value of -1 and the highest +1
         var stereoSpread = options.stereoSpread * string.prePan;
+        // for negative stereoSpreads, the note is pushed to the left
+        // for positive stereoSpreads, the note is pushed to the right
         var gainL = (1 - stereoSpread) * 0.5;
         var gainR = (1 + stereoSpread) * 0.5;
         for (var i = 0; i < targetArrayL.length; i++) {
