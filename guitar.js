@@ -119,7 +119,9 @@ String.prototype.pluck = function(time, velocity, tab) {
     var hz = this.basicHz * Math.pow(2, tab/12);
 
     asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options);
-    resonate(bufferChannelData);
+    if (options.body == "simple") {
+        resonate(bufferChannelData);
+    }
 
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
@@ -172,13 +174,24 @@ String.prototype.pluck = function(time, velocity, tab) {
         } else if (directCalculationRadio.checked) {
             var stringDampingCalculation = "direct";
         }
+
+        var noBodyRadio =
+            document.getElementById("noBody");
+        var simpleBodyRadio =
+            document.getElementById("simpleBody");
+        if (noBodyRadio.checked) {
+            var body = "none"
+        } else if (simpleBodyRadio.checked) {
+            var body = "simple";
+        }
         
         return {
             stringTension: stringTension,
             characterVariation: characterVariation,
             stringDamping: stringDamping,
             stringDampingVariation: stringDampingVariation,
-            stringDampingCalculation: stringDampingCalculation
+            stringDampingCalculation: stringDampingCalculation,
+            body: body
         };
     }
 
