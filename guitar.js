@@ -129,10 +129,14 @@ String.prototype.pluck = function(time, velocity, tab) {
         var heapBuffer = heapFloat32.buffer;
         var asm = asmFunctions(window, null, heapBuffer);
 
-        asm.renderKarplusStrong(0,
-                                seedNoise.length-1,
-                                seedNoise.length,
-                                seedNoise.length+targetArray.length-1,
+        var heapOffsets = {
+            seedStart: 0,
+            seedEnd: seedNoise.length-1,
+            targetStart: seedNoise.length,
+            targetEnd: seedNoise.length+targetArray.length-1
+        };
+
+        asm.renderKarplusStrong(heapOffsets,
                                 sampleRate,
                                 hz,
                                 velocity,
@@ -163,18 +167,17 @@ String.prototype.pluck = function(time, velocity, tab) {
 
         // the "smoothing factor" parameter is the coefficient
         // used on the terms in the low-pass filter
-        function renderKarplusStrong(seedNoiseStart, seedNoiseEnd,
-                                     targetArrayStart, targetArrayEnd,
+        function renderKarplusStrong(heapOffsets,
                                      sampleRate, hz, velocity,
                                      smoothingFactor, stringTension,
                                      characterVariation
                                     ) {
             // coersion to indicate type of arguments
             // ORing with 0 indicates type int
-            seedNoiseStart = seedNoiseStart|0;
-            seedNoiseEnd = seedNoiseEnd|0;
-            targetArrayStart = targetArrayStart|0;
-            targetArrayEnd = targetArrayEnd|0;
+            var seedNoiseStart = heapOffsets.noiseStart|0;
+            var seedNoiseEnd = heapOffsets.noiseEnd|0;
+            var targetArrayStart = heapOffsets.targetStart|0;
+            var targetArrayEnd = heapOffsets.targetEnd|0;
             sampleRate = sampleRate|0;
             hz = hz|0;
 
