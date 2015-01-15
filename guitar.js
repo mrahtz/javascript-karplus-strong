@@ -40,7 +40,6 @@ String.prototype.pluck = function(time, velocity, tab) {
                 " at beat " + (time/timeUnit).toFixed(2) + 
                 ", actual time " + this.audioCtx.currentTime);
 
-    var hz = this.basicHz * Math.pow(2, tab/12);
     var bufferSource = this.audioCtx.createBufferSource();
     var channels = 1;
     // 1 second buffer
@@ -49,14 +48,20 @@ String.prototype.pluck = function(time, velocity, tab) {
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
     // getChannelData returns a Float32Array, so no performance problems these
     var bufferChannelData = buffer.getChannelData(0);
+
     var options = getOptions();
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
+    var hz = this.basicHz * Math.pow(2, tab/12);
+
     asmWrapper(bufferChannelData, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options);
+
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
     // start playing at 'time'
     bufferSource.start(time);
 
+    // calculate the constant used for the low-pass filter
+    // used in the Karplus-Strong loop
     function calculateSmoothingFactor(string, tab, options) {
         var smoothingFactor;
         if (options.stringDampingCalculation == "direct") {
