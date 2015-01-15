@@ -145,10 +145,7 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 options.characterVariation);
         
         /*
-        asm.renderDecayedSine(0,
-                              seedNoise.length-1,
-                              seedNoise.length,
-                              seedNoise.length+targetArray.length-1,
+        asm.renderDecayedSine(heapOffsets,
                               sampleRate,
                               hz,
                               velocity);
@@ -221,14 +218,13 @@ String.prototype.pluck = function(time, velocity, tab) {
             }
         }
 
-        function renderDecayedSine(seedNoiseStart, seedNoiseEnd,
-                                   targetArrayStart, targetArrayEnd,
+        function renderDecayedSine(heapOffsets,
                                    sampleRate, hz, velocity) {
             // coersion to indicate type of arguments
-            seedNoiseStart = seedNoiseStart|0;
-            seedNoiseEnd = seedNoiseEnd|0;
-            targetArrayStart = targetArrayStart|0;
-            targetArrayEnd = targetArrayEnd|0;
+            var seedNoiseStart = heapOffsets.noiseStart|0;
+            var seedNoiseEnd = heapOffsets.noiseEnd|0;
+            var targetArrayStart = heapOffsets.targetStart|0;
+            var targetArrayEnd = heapOffsets.targetEnd|0;
             sampleRate = sampleRate|0;
             hz = hz|0;
             velocity = +velocity;
