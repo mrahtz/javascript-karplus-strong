@@ -190,7 +190,7 @@ String.prototype.pluck = function(time, velocity, tab) {
 
             for (targetIndex = 0;
                     targetIndex < frameCount;
-                    targetIndex = (targetIndex + 1)|0) {
+                    targetIndex++) {
                 var heapTargetIndex = (targetArrayStart + targetIndex)|0;
                 if (targetIndex < periodSamples) {
                     // for the first period, feed in noise
