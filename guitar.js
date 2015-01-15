@@ -188,6 +188,10 @@ String.prototype.pluck = function(time, velocity, tab) {
         } else if (simpleBodyRadio.checked) {
             var body = "simple";
         }
+
+        var stereoSpreadSlider =
+            document.getElementById("stereoSpread");
+        var stereoSpread = stereoSpreadSlider.valueAsNumber;
         
         return {
             stringTension: stringTension,
@@ -195,7 +199,8 @@ String.prototype.pluck = function(time, velocity, tab) {
             stringDamping: stringDamping,
             stringDampingVariation: stringDampingVariation,
             stringDampingCalculation: stringDampingCalculation,
-            body: body
+            body: body,
+            stereoSpread: stereoSpread
         };
     }
 
@@ -246,7 +251,7 @@ String.prototype.pluck = function(time, velocity, tab) {
                               hz,
                               velocity);
         */
-        var stereoSpread = 1 * string.prePan;
+        var stereoSpread = options.stereoSpread * string.prePan;
         var gainL = (1 - stereoSpread) * 0.5;
         var gainR = (1 + stereoSpread) * 0.5;
         for (var i = 0; i < targetArrayL.length; i++) {
