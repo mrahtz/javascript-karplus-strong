@@ -514,16 +514,6 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var guitar = new Guitar(audioCtx);
 
-
-guitarInfoPara = document.getElementById("guitarinfo");
-
-for (var i = 0; i < guitar.strings.length; i++) {
-    guitarInfoPara.innerHTML +=
-        "String " + i
-        + " has fundamental tone " + guitar.strings[i].basicHz + " Hz"
-        + "<br />";
-}
-
 chords = [Guitar.C_MAJOR,
           Guitar.G_MAJOR,
           Guitar.A_MINOR,
