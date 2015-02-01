@@ -435,6 +435,11 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
     console.log("Sequence number " + sequenceN);
     var chord = chords[chordIndex];
 
+    var playState = document.getElementById("playState").value;
+    if (playState == "stopped") {
+        return;
+    }
+
     switch(sequenceN % 13) {
         case 0:
             var samplePlayTime = startTime + timeUnit * 0;
@@ -518,7 +523,10 @@ chords = [Guitar.C_MAJOR,
           Guitar.G_MAJOR,
           Guitar.A_MINOR,
           Guitar.E_MINOR];
-var startTime = 0;
-var startChordIndex = 0;
-var startSequenceN = 0;
-queueSequence(startSequenceN, startTime, chords, startChordIndex);
+
+function startPlaying() {
+    var startTime = audioCtx.currentTime;
+    var startChordIndex = 0;
+    var startSequenceN = 0;
+    queueSequence(startSequenceN, startTime, chords, startChordIndex);
+}
