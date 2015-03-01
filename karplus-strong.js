@@ -31,9 +31,9 @@ function resonate(samples) {
         // this is copied verbatim from the original ActionScript source
         // haven't figured out how it works yet
         function simpleBody() {
-            var r00, r01, f00, f01, r10, r11, f10, f11, f0,
+            var r00, f00, r10, f10, f0,
                 c0, c1, r0, r1;
-            r00 = r01 = f00 = f01 = r10 = r11 = f10 = f11 = f0 = f1 = 0.0;
+            r00 = f00 = r10 = f10 = f0 = f1 = 0.0;
             c0 = 2 * Math.sin(Math.PI * 3.4375 / 44100);
             c1 = 2 * Math.sin(Math.PI * 6.124928687214833 / 44100);
             r0 = 0.98;
@@ -44,22 +44,12 @@ function resonate(samples) {
                 r00 = r00 + (f0 - f00) * c0;
                 f00 = f00 + r00;
                 f00 = f00 - f00 * f00 * f00 * 0.166666666666666;
-                r01 = r01 * r0;
-                r01 = r01 + (f1 - f01) * c0;
-                f01 = f01 + r01;
-                f01 = f01 - f01 * f01 * f01 * 0.166666666666666;
                 r10 = r10 * r1;
                 r10 = r10 + (f0 - f10) * c1;
                 f10 = f10 + r10;
                 f10 = f10 - f10 * f10 * f10 * 0.166666666666666;
-                r11 = r11 * r1;
-                r11 = r11 + (f1 - f11) * c1;
-                f11 = f11 + r11;
-                f11 = f11 - f11 * f11 * f11 * 0.166666666666666;
                 f0 = heap[i];
-                //f1 = _loc4_.c1;
                 heap[i] = f0 + (f00 + f10) * 2;
-                //_loc4_.c1 = f1 + (f01 + f11) * 2;
             }
         }
 
