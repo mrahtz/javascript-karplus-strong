@@ -69,11 +69,11 @@ function resonate(channelBuffer) {
     }
 }
 
-// === String ===
+// === GuitarString ===
 
-function String(audioCtx, stringN, octave, semitone) {
+function GuitarString(audioCtx, stringN, octave, semitone) {
     this.audioCtx = audioCtx;
-    this.basicHz = String.C0_HZ * Math.pow(2, octave+semitone/12);
+    this.basicHz = GuitarString.C0_HZ * Math.pow(2, octave+semitone/12);
     this.basicHz = this.basicHz.toFixed(2);
 
     // this is only used in a magical calculation of filter coefficients
@@ -98,14 +98,14 @@ function String(audioCtx, stringN, octave, semitone) {
 
 // work from A0 as a reference,
 // since it has a nice round frequency
-String.A0_HZ = 27.5;
+GuitarString.A0_HZ = 27.5;
 // an increase in octave by 1 doubles the frequency
 // each octave is divided into 12 semitones
 // the scale goes C0, C0#, D0, D0#, E0, F0, F0#, G0, G0#, A0, A0#, B0
 // so go back 9 semitones to get to C0
-String.C0_HZ = String.A0_HZ * Math.pow(2, -9/12);
+GuitarString.C0_HZ = GuitarString.A0_HZ * Math.pow(2, -9/12);
 
-String.prototype.pluck = function(time, velocity, tab) {
+GuitarString.prototype.pluck = function(time, velocity, tab) {
     console.log(this.basicHz + " Hz string being plucked" +
                 " with tab " + tab +
                 " with velocity " + velocity +
@@ -144,11 +144,11 @@ String.prototype.pluck = function(time, velocity, tab) {
             // is magical, don't know how it works
             var noteNumber = (string.semitoneIndex + tab - 19)/44;
             smoothingFactor = 
-                options.stringDamping
-                + Math.pow(noteNumber, 0.5) * (1 - options.stringDamping) * 0.5
-                + (1 - options.stringDamping)
-                    * Math.random()
-                    * options.stringDampingVariation;
+                options.stringDamping +
+                Math.pow(noteNumber, 0.5) * (1 - options.stringDamping) * 0.5 +
+                (1 - options.stringDamping) *
+                    Math.random() *
+                    options.stringDampingVariation;
         }
         return smoothingFactor;
     }
@@ -178,20 +178,22 @@ String.prototype.pluck = function(time, velocity, tab) {
             document.getElementById("magicCalculation");
         var directCalculationRadio =
             document.getElementById("directCalculation");
+        var stringDampingCalculation;
         if (magicCalculationRadio.checked) {
-            var stringDampingCalculation = "magic";
+            stringDampingCalculation = "magic";
         } else if (directCalculationRadio.checked) {
-            var stringDampingCalculation = "direct";
+            stringDampingCalculation = "direct";
         }
 
         var noBodyRadio =
             document.getElementById("noBody");
         var simpleBodyRadio =
             document.getElementById("simpleBody");
+        var body;
         if (noBodyRadio.checked) {
-            var body = "none"
+            body = "none";
         } else if (simpleBodyRadio.checked) {
-            var body = "simple";
+            body = "simple";
         }
 
         var stereoSpreadSlider =
@@ -215,11 +217,12 @@ String.prototype.pluck = function(time, velocity, tab) {
         var targetArrayL = channelBuffer.getChannelData(0);
         var targetArrayR = channelBuffer.getChannelData(1);
 
-        var heapFloat32Size = seedNoise.length
-                              + targetArrayL.length
-                              + targetArrayR.length;
+        var heapFloat32Size = seedNoise.length + 
+                              targetArrayL.length +
+                              targetArrayR.length;
         var heapFloat32 = new Float32Array(heapFloat32Size);
-        for (var i = 0; i < seedNoise.length; i++) {
+        var i;
+        for (i = 0; i < seedNoise.length; i++) {
             heapFloat32[i] = seedNoise[i];
         }
 
@@ -258,10 +261,10 @@ String.prototype.pluck = function(time, velocity, tab) {
         // for positive stereoSpreads, the note is pushed to the right
         var gainL = (1 - stereoSpread) * 0.5;
         var gainR = (1 + stereoSpread) * 0.5;
-        for (var i = 0; i < targetArrayL.length; i++) {
+        for (i = 0; i < targetArrayL.length; i++) {
             targetArrayL[i] = heapFloat32[heapOffsets.targetStart+i] * gainL;
         }
-        for (var i = 0; i < targetArrayL.length; i++) {
+        for (i = 0; i < targetArrayL.length; i++) {
             targetArrayR[i] = heapFloat32[heapOffsets.targetStart+i] * gainR;
         }
     }
@@ -322,13 +325,14 @@ String.prototype.pluck = function(time, velocity, tab) {
                     var lastPeriodIndex = heapTargetIndex - periodSamples;
                     var skipFromTension = Math.round(stringTension * periodSamples);
                     var inputIndex = lastPeriodIndex + skipFromTension;
-                    var curInputSample = Math.fround(heap[inputIndex]);
+                    // TODO add pluck damping here, too!
+                    curInputSample = Math.fround(heap[inputIndex]);
                 }
 
                 // output is low-pass filtered version of input
                 var curOutputSample =
-                    smoothingFactor*curInputSample 
-                    + (1 - smoothingFactor)*lastOutputSample;
+                    smoothingFactor*curInputSample +
+                    (1 - smoothingFactor)*lastOutputSample;
                 heap[heapTargetIndex] = curOutputSample;
                 lastOutputSample = curOutputSample;
             }
@@ -371,7 +375,7 @@ String.prototype.pluck = function(time, velocity, tab) {
         return { renderKarplusStrong: renderKarplusStrong,
                  renderDecayedSine: renderDecayedSine };
     }
-}
+};
 
 // === Guitar ===
 
@@ -381,13 +385,13 @@ function Guitar(audioCtx) {
     // 'strings' becomes a 'property'
     // (an instance variable)
     this.strings = [
-        new String(audioCtx, 0, 2, 4),   // E2
-        new String(audioCtx, 1, 2, 9),   // A2
-        new String(audioCtx, 2, 3, 2),   // D3
-        new String(audioCtx, 3, 3, 7),   // G3
-        new String(audioCtx, 4, 3, 11),  // B3
-        new String(audioCtx, 5, 4, 4)    // E4
-    ]
+        new GuitarString(audioCtx, 0, 2, 4),   // E2
+        new GuitarString(audioCtx, 1, 2, 9),   // A2
+        new GuitarString(audioCtx, 2, 3, 2),   // D3
+        new GuitarString(audioCtx, 3, 3, 7),   // G3
+        new GuitarString(audioCtx, 4, 3, 11),  // B3
+        new GuitarString(audioCtx, 5, 4, 4)    // E4
+    ];
 }
 
 // each fret represents an increase in pitch by one semitone
@@ -406,10 +410,11 @@ Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
     console.log("Strumming with velocity " + velocity +
                 ", downstroke: " + downstroke +
                 ", at beat " + (time/timeUnit));
-    if (downstroke == true) {
-        var pluckOrder = [0, 1, 2, 3, 4, 5];
+    var pluckOrder;
+    if (downstroke === true) {
+        pluckOrder = [0, 1, 2, 3, 4, 5];
     } else {
-        var pluckOrder = [5, 4, 3, 2, 1, 0];
+        pluckOrder = [5, 4, 3, 2, 1, 0];
     }
 
     for (var i = 0; i < 6; i++) {
@@ -451,61 +456,62 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
         return;
     }
 
+    var samplePlayTime;
     switch(sequenceN % 13) {
         case 0:
-            var samplePlayTime = startTime + timeUnit * 0;
+            samplePlayTime = startTime + timeUnit * 0;
             guitar.strumChord(samplePlayTime,  true,  1.0, chord);
             break;
         case 1:
-            var samplePlayTime = startTime + timeUnit * 4;
+            samplePlayTime = startTime + timeUnit * 4;
             guitar.strumChord(samplePlayTime,  true,  1.0, chord);
             break;
         case 2:
-            var samplePlayTime = startTime + timeUnit * 6;
+            samplePlayTime = startTime + timeUnit * 6;
             guitar.strumChord(samplePlayTime,  false, 0.8, chord);
             break;
         case 3:
-            var samplePlayTime = startTime + timeUnit * 10;
+            samplePlayTime = startTime + timeUnit * 10;
             guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 4:
-            var samplePlayTime = startTime + timeUnit * 12;
+            samplePlayTime = startTime + timeUnit * 12;
             guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 5:
-            var samplePlayTime = startTime + timeUnit * 14;
+            samplePlayTime = startTime + timeUnit * 14;
             guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 6:
-            var samplePlayTime = startTime + timeUnit * 16;
+            samplePlayTime = startTime + timeUnit * 16;
             guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 7:
-            var samplePlayTime = startTime + timeUnit * 20;
+            samplePlayTime = startTime + timeUnit * 20;
             guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 8:
-            var samplePlayTime = startTime + timeUnit * 22;
+            samplePlayTime = startTime + timeUnit * 22;
             guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 9:
-            var samplePlayTime = startTime + timeUnit * 26;
+            samplePlayTime = startTime + timeUnit * 26;
             guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 10:
-            var samplePlayTime = startTime + timeUnit * 28;
+            samplePlayTime = startTime + timeUnit * 28;
             guitar.strumChord(samplePlayTime, true,  1.0, chord);
             break;
         case 11:
-            var samplePlayTime = startTime + timeUnit * 30;
+            samplePlayTime = startTime + timeUnit * 30;
             guitar.strumChord(samplePlayTime, false, 0.8, chord);
             break;
         case 12:
 
-            var samplePlayTime = startTime + timeUnit * 31;
+            samplePlayTime = startTime + timeUnit * 31;
             guitar.strings[2].pluck(samplePlayTime,   0.7, chord[2]);
 
-            var samplePlayTime = startTime + timeUnit * 31.5;
+            samplePlayTime = startTime + timeUnit * 31.5;
             guitar.strings[1].pluck(samplePlayTime, 0.7, chord[1]);
 
             chordIndex = (chordIndex + 1) % 4;
@@ -525,9 +531,16 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
     queuerSource.start(samplePlayTime);
 }
 
-// webkitAudioContext for Webkit browsers
-// AudioContext for Firefox
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var audioContextConstructor;
+if ('audioContext' in window) {
+    // Firefox
+    audioContextConstructor = window.audioContext;
+} else if ('webkitAudioContext' in window) {
+    // Safari, Chrome
+    audioContextConstructor = window.webkitAudioContext;
+}
+
+var audioCtx = new audioContextConstructor();
 var guitar = new Guitar(audioCtx);
 
 chords = [Guitar.C_MAJOR,
