@@ -470,7 +470,7 @@ function createDummySource(audioCtx) {
 // and queue creation of the following part of the rhythm.
 // The rhythms parts have as fine a granularity as possible to enable
 // adjustment of guitar parameters with real-time feedback.
-// (The larger the parts, the longer the possible delay between
+// (The larger the parts, the longer the delay between
 //  parameter adjustments and samples created with the new parameters.)
 function queueSequence(sequenceN, startTime, chords, chordIndex) {
     console.log("Sequence number " + sequenceN);
