@@ -74,13 +74,22 @@ function GuitarString(audioCtx, stringN, octave, semitone) {
     
     var basicPeriod = 1/this.basicHz;
     var basicPeriodSamples = Math.round(basicPeriod * audioCtx.sampleRate);
-    this.seedNoise = generateSeedNoise(basicPeriodSamples);
+    this.seedNoise = generateSeedNoise(65535, basicPeriodSamples);
 
-    function generateSeedNoise(samples) {
+    function generateSeedNoise(seed, samples) {
         var noiseArray = new Float32Array(samples);
-        for (i = 0; i < samples; i++) {
-            // Math.random() only returns between 0 and 1
-            noiseArray[i] = -1 + 2*Math.random();
+        for (var i = 0; i < samples; i++) {
+            // taken directly from ActionScript
+            var _loc1_ = 16807 * (seed & 65535);
+            var _loc2_ = 16807 * (seed >> 16);
+            _loc1_ = _loc1_ + ((_loc2_ & 32767) << 16);
+            _loc1_ = _loc1_ + (_loc2_ >> 15);
+            if (_loc1_ > 4.151801719E9)
+            {
+                _loc1_ = _loc1_ - 4.151801719E9;
+            }
+            var rand = (seed = _loc1_) / 4.151801719E9 * 2 - 1;
+            noiseArray[i] = rand;
         }
         return noiseArray;
     }
