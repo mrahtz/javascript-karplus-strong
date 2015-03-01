@@ -276,6 +276,12 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
         // so first need to get a Float32 of it
         var heap = new Float32Array(heapBuffer);
 
+        function lowPass(lastOutput, currentInput, smoothingFactor) {
+            var currentOutput = smoothingFactor * currentInput +
+                (1 - smoothingFactor) * lastOutput;
+            return currentOutput;
+        }
+
         // the "smoothing factor" parameter is the coefficient
         // used on the terms in the low-pass filter
         function renderKarplusStrong(heapOffsets,
@@ -316,10 +322,7 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
                     noiseSample *= (1 - characterVariation);
                     // add character variation
                     noiseSample += characterVariation * (-1 + 2*Math.random());
-                    // use pluckDamping as the smoothing coefficient of a
-                    // low-pass filter on the sample going in
-                    curInputSample = curInputSample*(1 - pluckDamping) + 
-                        noiseSample * pluckDamping;
+                    curInputSample = lowPass(curInputSample, noiseSample, pluckDamping);
                 } else {
                     // for subsequent periods, feed in the output from
                     // about one period ago
@@ -330,9 +333,7 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
                 }
 
                 // output is low-pass filtered version of input
-                var curOutputSample =
-                    smoothingFactor*curInputSample +
-                    (1 - smoothingFactor)*lastOutputSample;
+                var curOutputSample = lowPass(lastOutputSample, curInputSample, smoothingFactor);
                 heap[heapTargetIndex] = curOutputSample;
                 lastOutputSample = curOutputSample;
             }
