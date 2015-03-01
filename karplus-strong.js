@@ -474,7 +474,6 @@ function createDummySource(audioCtx) {
 //  parameter adjustments and samples created with the new parameters.)
 function queueSequence(sequenceN, blockStartTime, chords, chordIndex) {
     console.log("Sequence number " + sequenceN);
-    var chord = chords[chordIndex];
 
     var playState = document.getElementById("playState").value;
     if (playState == "stopped") {
@@ -482,75 +481,81 @@ function queueSequence(sequenceN, blockStartTime, chords, chordIndex) {
     }
 
     var curStrumStartTime;
+    var strumGenerationsPerRun = 1;
 
-    switch(sequenceN % 13) {
-        case 0:
-            curStrumStartTime = blockStartTime + timeUnit * 0;
-            guitar.strumChord(curStrumStartTime,  true,  1.0, chord);
-            break;
-        case 1:
-            curStrumStartTime = blockStartTime + timeUnit * 4;
-            guitar.strumChord(curStrumStartTime,  true,  1.0, chord);
-            break;
-        case 2:
-            curStrumStartTime = blockStartTime + timeUnit * 6;
-            guitar.strumChord(curStrumStartTime,  false, 0.8, chord);
-            break;
-        case 3:
-            curStrumStartTime = blockStartTime + timeUnit * 10;
-            guitar.strumChord(curStrumStartTime, false, 0.8, chord);
-            break;
-        case 4:
-            curStrumStartTime = blockStartTime + timeUnit * 12;
-            guitar.strumChord(curStrumStartTime, true,  1.0, chord);
-            break;
-        case 5:
-            curStrumStartTime = blockStartTime + timeUnit * 14;
-            guitar.strumChord(curStrumStartTime, false, 0.8, chord);
-            break;
-        case 6:
-            curStrumStartTime = blockStartTime + timeUnit * 16;
-            guitar.strumChord(curStrumStartTime, true,  1.0, chord);
-            break;
-        case 7:
-            curStrumStartTime = blockStartTime + timeUnit * 20;
-            guitar.strumChord(curStrumStartTime, true,  1.0, chord);
-            break;
-        case 8:
-            curStrumStartTime = blockStartTime + timeUnit * 22;
-            guitar.strumChord(curStrumStartTime, false, 0.8, chord);
-            break;
-        case 9:
-            curStrumStartTime = blockStartTime + timeUnit * 26;
-            guitar.strumChord(curStrumStartTime, false, 0.8, chord);
-            break;
-        case 10:
-            curStrumStartTime = blockStartTime + timeUnit * 28;
-            guitar.strumChord(curStrumStartTime, true,  1.0, chord);
-            break;
-        case 11:
-            curStrumStartTime = blockStartTime + timeUnit * 30;
-            guitar.strumChord(curStrumStartTime, false, 0.8, chord);
-            break;
-        case 12:
+    while (strumGenerationsPerRun > 0) {
+        var chord = chords[chordIndex];
+        switch(sequenceN % 13) {
+            case 0:
+                curStrumStartTime = blockStartTime + timeUnit * 0;
+                guitar.strumChord(curStrumStartTime,  true,  1.0, chord);
+                break;
+            case 1:
+                curStrumStartTime = blockStartTime + timeUnit * 4;
+                guitar.strumChord(curStrumStartTime,  true,  1.0, chord);
+                break;
+            case 2:
+                curStrumStartTime = blockStartTime + timeUnit * 6;
+                guitar.strumChord(curStrumStartTime,  false, 0.8, chord);
+                break;
+            case 3:
+                curStrumStartTime = blockStartTime + timeUnit * 10;
+                guitar.strumChord(curStrumStartTime, false, 0.8, chord);
+                break;
+            case 4:
+                curStrumStartTime = blockStartTime + timeUnit * 12;
+                guitar.strumChord(curStrumStartTime, true,  1.0, chord);
+                break;
+            case 5:
+                curStrumStartTime = blockStartTime + timeUnit * 14;
+                guitar.strumChord(curStrumStartTime, false, 0.8, chord);
+                break;
+            case 6:
+                curStrumStartTime = blockStartTime + timeUnit * 16;
+                guitar.strumChord(curStrumStartTime, true,  1.0, chord);
+                break;
+            case 7:
+                curStrumStartTime = blockStartTime + timeUnit * 20;
+                guitar.strumChord(curStrumStartTime, true,  1.0, chord);
+                break;
+            case 8:
+                curStrumStartTime = blockStartTime + timeUnit * 22;
+                guitar.strumChord(curStrumStartTime, false, 0.8, chord);
+                break;
+            case 9:
+                curStrumStartTime = blockStartTime + timeUnit * 26;
+                guitar.strumChord(curStrumStartTime, false, 0.8, chord);
+                break;
+            case 10:
+                curStrumStartTime = blockStartTime + timeUnit * 28;
+                guitar.strumChord(curStrumStartTime, true,  1.0, chord);
+                break;
+            case 11:
+                curStrumStartTime = blockStartTime + timeUnit * 30;
+                guitar.strumChord(curStrumStartTime, false, 0.8, chord);
+                break;
+            case 12:
 
-            curStrumStartTime = blockStartTime + timeUnit * 31;
-            guitar.strings[2].pluck(curStrumStartTime,   0.7, chord[2]);
+                curStrumStartTime = blockStartTime + timeUnit * 31;
+                guitar.strings[2].pluck(curStrumStartTime,   0.7, chord[2]);
 
-            curStrumStartTime = blockStartTime + timeUnit * 31.5;
-            guitar.strings[1].pluck(curStrumStartTime, 0.7, chord[1]);
+                curStrumStartTime = blockStartTime + timeUnit * 31.5;
+                guitar.strings[1].pluck(curStrumStartTime, 0.7, chord[1]);
 
-            chordIndex = (chordIndex + 1) % 4;
-            blockStartTime += timeUnit*32;
+                chordIndex = (chordIndex + 1) % 4;
+                blockStartTime += timeUnit*32;
 
-            break;
+                break;
+        }
+        sequenceN++;
+        strumGenerationsPerRun--;
     }
 
     // the dummy source has zero length, and is just used to 
     // call queueSequence() again after a period of time
     var queuerSource = createDummySource(audioCtx);
     queuerSource.onended = function() { 
-        queueSequence(sequenceN + 1, blockStartTime, chords, chordIndex);
+        queueSequence(sequenceN, blockStartTime, chords, chordIndex);
     };
     // we set the next strum to be generated at the same time as the
     // current strum begins playing to allow enough time for the next
