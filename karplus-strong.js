@@ -246,6 +246,9 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
                                 options.stringTension,
                                 options.pluckDamping,
                                 options.characterVariation);
+
+        asm.fadeTails(heapOffsets.targetStart,
+                heapOffsets.targetEnd - heapOffsets.targetStart + 1);
         
         /*
         asm.renderDecayedSine(heapOffsets,
@@ -283,6 +286,23 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
             var currentOutput = smoothingFactor * currentInput +
                 (1 - smoothingFactor) * lastOutput;
             return currentOutput;
+        }
+        
+        // apply a fade envelope to the end of a buffer
+        // to make it end at zero ampltiude
+        // (to avoid clicks heard when sample otherwise suddenly
+        //  cuts off)
+        function fadeTails(heapStart, length) {
+            var tailProportion = 0.1;
+            var tailSamples = Math.round(length * tailProportion);
+            var tailSamplesStart = heapStart + length - tailSamples;
+
+            for (var i = tailSamplesStart, samplesThroughTail = 0;
+                    i < heapStart + length;
+                    i++, samplesThroughTail++) {
+                var proportionOfTail = samplesThroughTail / tailSamples;
+                heap[i] *= (1 - proportionOfTail);
+            }
         }
 
         // the "smoothing factor" parameter is the coefficient
@@ -377,7 +397,8 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
         }
 
         return { renderKarplusStrong: renderKarplusStrong,
-                 renderDecayedSine: renderDecayedSine };
+                 renderDecayedSine: renderDecayedSine,
+                 fadeTails: fadeTails };
     }
 };
 
