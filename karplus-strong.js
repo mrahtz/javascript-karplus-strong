@@ -125,8 +125,8 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
 
     asmWrapper(buffer, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options, this);
     if (options.body == "simple") {
-        resonate(channelBuffer.getChannelData(0));
-        resonate(channelBuffer.getChannelData(1));
+        resonate(buffer.getChannelData(0));
+        resonate(buffer.getChannelData(1));
     }
 
     bufferSource.buffer = buffer;
