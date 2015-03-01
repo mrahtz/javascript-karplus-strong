@@ -1,4 +1,7 @@
 // this was derived experimentally to match Andre Michelle's
+// TODO
+// * currently sounds strange when characterVariation = 0
+
 // I've no idea how it works out as this...
 // it doesn't seem to appear in the code anywhere
 var timeUnit = 0.12;
@@ -38,8 +41,8 @@ function resonate(samples) {
             c1 = 2 * Math.sin(Math.PI * 6.124928687214833 / 44100);
             r0 = 0.98;
             r1 = 0.98;
+            var lastInput = 0, lastOutput = 0;
             for (var i = 0; i < heap.length; i++) {
-                var curSample = heap[i];
                 r00 = r00 * r0;
                 r00 = r00 + (f0 - f00) * c0;
                 f00 = f00 + r00;
@@ -50,6 +53,11 @@ function resonate(samples) {
                 f10 = f10 - f10 * f10 * f10 * 0.166666666666666;
                 f0 = heap[i];
                 heap[i] = f0 + (f00 + f10) * 2;
+
+                var curInput = heap[i];
+                heap[i] = 0.99 * lastOutput + 0.99*(curInput - lastInput);
+                lastInput = curInput;
+                lastOutput = heap[i];
             }
         }
 
@@ -264,14 +272,11 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
         // for positive stereoSpreads, the note is pushed to the right
         var gainL = (1 - stereoSpread) * 0.5;
         var gainR = (1 + stereoSpread) * 0.5;
-        var clippingAvoidanceGain = 0.1;
         for (i = 0; i < targetArrayL.length; i++) {
             targetArrayL[i] = heapFloat32[heapOffsets.targetStart+i] * gainL;
-            targetArrayL[i] *= clippingAvoidanceGain;
         }
         for (i = 0; i < targetArrayL.length; i++) {
             targetArrayR[i] = heapFloat32[heapOffsets.targetStart+i] * gainR;
-            targetArrayR[i] *= clippingAvoidanceGain;
         }
     }
 
