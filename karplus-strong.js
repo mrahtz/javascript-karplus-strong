@@ -261,11 +261,14 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
         // for positive stereoSpreads, the note is pushed to the right
         var gainL = (1 - stereoSpread) * 0.5;
         var gainR = (1 + stereoSpread) * 0.5;
+        var clippingAvoidanceGain = 0.1;
         for (i = 0; i < targetArrayL.length; i++) {
             targetArrayL[i] = heapFloat32[heapOffsets.targetStart+i] * gainL;
+            targetArrayL[i] *= clippingAvoidanceGain;
         }
         for (i = 0; i < targetArrayL.length; i++) {
             targetArrayR[i] = heapFloat32[heapOffsets.targetStart+i] * gainR;
+            targetArrayR[i] *= clippingAvoidanceGain;
         }
     }
 
