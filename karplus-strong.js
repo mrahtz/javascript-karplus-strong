@@ -7,8 +7,7 @@ var timeUnit = 0.12;
 
 // samples: a Float32Array containing samples to apply
 // to a guitar body
-function resonate(channelBuffer) {
-    var samples = channelBuffer.getChannelData(0);
+function resonate(samples) {
     // asm.js requires all data in/out of function to
     // be done through heap object
     // from the asm.js spec, it sounds like the heap must be
@@ -125,7 +124,8 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
 
     asmWrapper(buffer, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options, this);
     if (options.body == "simple") {
-        resonate(buffer);
+        resonate(channelBuffer.getChannelData(0));
+        resonate(channelBuffer.getChannelData(1));
     }
 
     bufferSource.buffer = buffer;
