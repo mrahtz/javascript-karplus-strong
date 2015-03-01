@@ -531,26 +531,44 @@ function queueSequence(sequenceN, startTime, chords, chordIndex) {
     queuerSource.start(samplePlayTime);
 }
 
-var audioContextConstructor;
-if ('audioContext' in window) {
-    // Firefox
-    audioContextConstructor = window.audioContext;
-} else if ('webkitAudioContext' in window) {
-    // Safari, Chrome
-    audioContextConstructor = window.webkitAudioContext;
+function getAudioContext() {
+    var constructor;
+    var error;
+    if ('AudioContext' in window) {
+        // Firefox, Chrome
+        constructor = window.AudioContext;
+    } else if ('webkitAudioContext' in window) {
+        // Safari
+        constructor = window.webkitAudioContext;
+    } else {
+        // uh-oh; browser doesn't suport Web Audio?
+        var guitarErrorText = document.getElementById("guitarErrorText");
+        guitarErrorText.innerHTML =
+            "<b>Error: unable to get audio context. " +
+            "Does your browser support Web Audio?</b>";
+        return null;
+    }
+
+    var audioContext = new constructor();
+    return audioContext;
 }
 
-var audioCtx = new audioContextConstructor();
-var guitar = new Guitar(audioCtx);
-
-chords = [Guitar.C_MAJOR,
-          Guitar.G_MAJOR,
-          Guitar.A_MINOR,
-          Guitar.E_MINOR];
+var guitar;
+var audioCtx = getAudioContext();
+if (audioCtx !== null) {
+    // now that we've verified Web Audio support, we can show the panel
+    var guitarPanel = document.getElementById("guitarPanel");
+    guitarPanel.style.display = 'block';
+    guitar = new Guitar(audioCtx);
+}
 
 function startPlaying() {
     var startTime = audioCtx.currentTime;
     var startChordIndex = 0;
     var startSequenceN = 0;
+    chords = [Guitar.C_MAJOR,
+              Guitar.G_MAJOR,
+              Guitar.A_MINOR,
+              Guitar.E_MINOR];
     queueSequence(startSequenceN, startTime, chords, startChordIndex);
 }
