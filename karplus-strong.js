@@ -170,6 +170,10 @@ String.prototype.pluck = function(time, velocity, tab) {
             document.getElementById("stringDampingVariation");
         var stringDampingVariation = stringDampingVariationSlider.valueAsNumber;
 
+        var pluckDampingSlider =
+            document.getElementById("pluckDamping");
+        var pluckDamping = pluckDampingSlider.valueAsNumber;
+
         var magicCalculationRadio =
             document.getElementById("magicCalculation");
         var directCalculationRadio =
@@ -200,6 +204,7 @@ String.prototype.pluck = function(time, velocity, tab) {
             stringDamping: stringDamping,
             stringDampingVariation: stringDampingVariation,
             stringDampingCalculation: stringDampingCalculation,
+            pluckDamping: pluckDamping,
             body: body,
             stereoSpread: stereoSpread
         };
@@ -236,6 +241,7 @@ String.prototype.pluck = function(time, velocity, tab) {
                                 velocity,
                                 smoothingFactor,
                                 options.stringTension,
+                                options.pluckDamping,
                                 options.characterVariation);
         
         /*
@@ -272,6 +278,7 @@ String.prototype.pluck = function(time, velocity, tab) {
         function renderKarplusStrong(heapOffsets,
                                      sampleRate, hz, velocity,
                                      smoothingFactor, stringTension,
+                                     pluckDamping,
                                      characterVariation
                                     ) {
             // coersion to indicate type of arguments
@@ -292,6 +299,7 @@ String.prototype.pluck = function(time, velocity, tab) {
             var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
             var targetIndex = 0;
             var lastOutputSample = 0;
+            var curInputSample = 0;
 
             for (targetIndex = 0;
                     targetIndex < frameCount;
@@ -300,11 +308,14 @@ String.prototype.pluck = function(time, velocity, tab) {
                 if (targetIndex < periodSamples) {
                     // for the first period, feed in noise
                     var heapNoiseIndex = (seedNoiseStart + targetIndex)|0;
-                    var curInputSample = Math.fround(heap[heapNoiseIndex]);
+                    var curInputSample_input = Math.fround(heap[heapNoiseIndex]);
                     // create room for character variation noise
-                    curInputSample *= (1 - characterVariation);
+                    curInputSample_input *= (1 - characterVariation);
                     // add character variation
-                    curInputSample += characterVariation * (-1 + 2*Math.random());
+                    curInputSample_input += characterVariation * (-1 + 2*Math.random());
+                    // use pluckDamping as the smoothing coefficient of a
+                    // low-pass filter on the sample going in
+                    curInputSample = curInputSample*(1 - pluckDamping) + curInputSample_input * pluckDamping;
                 } else {
                     // for subsequent periods, feed in the output from
                     // about one period ago
