@@ -311,21 +311,21 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
                 if (targetIndex < periodSamples) {
                     // for the first period, feed in noise
                     var heapNoiseIndex = (seedNoiseStart + targetIndex)|0;
-                    var curInputSample_input = Math.fround(heap[heapNoiseIndex]);
+                    var noiseSample = Math.fround(heap[heapNoiseIndex]);
                     // create room for character variation noise
-                    curInputSample_input *= (1 - characterVariation);
+                    noiseSample *= (1 - characterVariation);
                     // add character variation
-                    curInputSample_input += characterVariation * (-1 + 2*Math.random());
+                    noiseSample += characterVariation * (-1 + 2*Math.random());
                     // use pluckDamping as the smoothing coefficient of a
                     // low-pass filter on the sample going in
-                    curInputSample = curInputSample*(1 - pluckDamping) + curInputSample_input * pluckDamping;
+                    curInputSample = curInputSample*(1 - pluckDamping) + 
+                        noiseSample * pluckDamping;
                 } else {
                     // for subsequent periods, feed in the output from
                     // about one period ago
                     var lastPeriodIndex = heapTargetIndex - periodSamples;
                     var skipFromTension = Math.round(stringTension * periodSamples);
                     var inputIndex = lastPeriodIndex + skipFromTension;
-                    // TODO add pluck damping here, too!
                     curInputSample = Math.fround(heap[inputIndex]);
                 }
 
