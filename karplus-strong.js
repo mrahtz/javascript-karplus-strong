@@ -12,6 +12,7 @@ function resonate(samples) {
     // be done through heap object
     // from the asm.js spec, it sounds like the heap must be
     // passed in as a plain ArrayBuffer
+    // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
     var heapBuffer = samples.buffer;
     var asm = asmFunctions(window, null, heapBuffer);
     asm.simpleBody();
