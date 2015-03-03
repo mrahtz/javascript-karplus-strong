@@ -51,3 +51,12 @@ Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
     }
 
 };
+
+var guitar;
+var audioCtx = getAudioContext();
+if (audioCtx !== null) {
+    // now that we've verified Web Audio support, we can show the panel
+    var guitarPanel = document.getElementById("guitarPanel");
+    guitarPanel.style.display = 'block';
+    guitar = new Guitar(audioCtx);
+}

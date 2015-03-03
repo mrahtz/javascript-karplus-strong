@@ -1,15 +1,3 @@
-// create zero-length dummy source used to queue next part of rhythm
-function createDummySource(audioCtx) {
-    dummySource = audioCtx.createBufferSource();
-    var channels = 1;
-    // 2 samples seems to the the minimum to get it to work
-    var frameCount = 2;
-    dummySource.buffer = 
-        audioCtx.createBuffer(channels, frameCount, audioCtx.sampleRate);
-    dummySource.connect(audioCtx.destination);
-    return dummySource;
-}
-
 // Create sound samples for the current part of the strum sequence,
 // and queue generation of sound samples of the following part.
 // The rhythms parts have as fine a granularity as possible to enable
@@ -112,15 +100,6 @@ function queueStrums(sequenceN, blockStartTime, chordIndex) {
     // current strum begins playing to allow enough time for the next
     // strum to be generated before it comes time to play it
     queuerSource.start(curStrumStartTime);
-}
-
-var guitar;
-var audioCtx = getAudioContext();
-if (audioCtx !== null) {
-    // now that we've verified Web Audio support, we can show the panel
-    var guitarPanel = document.getElementById("guitarPanel");
-    guitarPanel.style.display = 'block';
-    guitar = new Guitar(audioCtx);
 }
 
 function startGuitarPlaying() {
