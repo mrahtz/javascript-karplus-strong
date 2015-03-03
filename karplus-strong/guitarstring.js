@@ -1,9 +1,6 @@
 // this was derived experimentally to match Andre Michelle's
-// TODO
-// * currently sounds strange when characterVariation = 0
-
 // I've no idea how it works out as this...
-// it doesn't seem to appear in the code anywhere
+// it doesn't seem to appear in the ActionScript code anywhere...
 var timeUnit = 0.12;
 
 // === GuitarString ===
