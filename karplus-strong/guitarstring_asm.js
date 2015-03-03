@@ -73,26 +73,64 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
 
     // heap is supposed to come in as just an ArrayBuffer
     // so first need to get a Float32 view of it
-    var heap = new Float32Array(heapBuffer);
+    var heap = new stdlib.Float32Array(heapBuffer);
+    var fround = stdlib.Math.fround;
+    var sin = stdlib.Math.sin;
+    var pi = stdlib.Math.PI;
+    var floor = stdlib.Math.floor;
 
     function lowPass(lastOutput, currentInput, smoothingFactor) {
-        var currentOutput = smoothingFactor * currentInput +
-            (1 - smoothingFactor) * lastOutput;
-        return currentOutput;
+
+        // coersion to indicate type of arguments
+        // fround indicates type float
+        lastOutput = fround(lastOutput);
+        currentInput = fround(currentInput);
+        smoothingFactor = fround(smoothingFactor);
+
+        var currentOutput = fround(0);
+        currentOutput = fround(
+            fround(smoothingFactor * currentInput) +
+            fround(fround(fround(1.0) - smoothingFactor) * lastOutput)
+        );
+
+        return fround(currentOutput);
     }
 
     // this is copied verbatim from the original ActionScript source
     // haven't figured out how it works yet
+    // we do all the arithmetic using doubles rather than floats,
+    // because in the asm.js spec, operations done floats resolve
+    // to 'floatish'es, which need to be coerced back into floats,
+    // and the code becomes unreadable
     function simpleBody(heapStart, heapEnd) {
-        var r00, f00, r10, f10, f0,
-            c0, c1, r0, r1;
-        r00 = f00 = r10 = f10 = f0 = f1 = 0.0;
-        c0 = 2 * Math.sin(Math.PI * 3.4375 / 44100);
-        c1 = 2 * Math.sin(Math.PI * 6.124928687214833 / 44100);
+        // declare as ints
+        heapStart = heapStart|0;
+        heapEnd = heapEnd|0;
+
+        // explicitly initialise all variables so types are declared
+        var r00 = 0.0;
+        var f00 = 0.0;
+        var r10 = 0.0;
+        var f10 = 0.0;
+        var f0 = 0.0;
+        var c0 = 0.0;
+        var c1 = 0.0;
+        var r0 = 0.0;
+        var r1 = 0.0;
+        var curInput = 0.0;
+        var lastInput = 0.0;
+        var lastOutput = 0.0;
+        var i = 0;
+        
+        // +x indicates that x is a double
+        // (asm.js Math functions take doubles as arguments)
+        c0 = 2.0 * sin(pi * 3.4375 / 44100.0);
+        c1 = 2.0 * sin(pi * 6.124928687214833 / 44100.0);
         r0 = 0.98;
         r1 = 0.98;
-        var lastInput = 0, lastOutput = 0;
-        for (var i = heapStart; i < heapEnd; i++) {
+
+        // asm.js seems to require byte addressing of the heap...?
+        for (i = heapStart << 2; (i|0) < (heapEnd|0); i = (i + 4)|0) {
             r00 = r00 * r0;
             r00 = r00 + (f0 - f00) * c0;
             f00 = f00 + r00;
@@ -101,13 +139,17 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             r10 = r10 + (f0 - f10) * c1;
             f10 = f10 + r10;
             f10 = f10 - f10 * f10 * f10 * 0.166666666666666;
-            f0 = heap[i];
-            heap[i] = f0 + (f00 + f10) * 2;
+            f0 = +heap[i >> 2];
+            heap[i >> 2] = fround(
+                    f0 + (f00 + f10) * 2.0
+            );
 
-            var curInput = heap[i];
-            heap[i] = 0.99 * lastOutput + 0.99*(curInput - lastInput);
+            curInput = +heap[i >> 2];
+            heap[i >> 2] = fround(
+                    0.99 * lastOutput + 0.99*(curInput - lastInput)
+            );
             lastInput = curInput;
-            lastOutput = heap[i];
+            lastOutput = +heap[i >> 2];
         }
     }
     
@@ -117,9 +159,17 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
     // (to avoid clicks heard when sample otherwise suddenly
     //  cuts off)
     function fadeTails(heapStart, length) {
-        var tailProportion = 0.1;
-        var tailSamples = Math.round(length * tailProportion);
-        var tailSamplesStart = heapStart + length - tailSamples;
+        heapStart = heapStart|0;
+        length = length|0;
+
+        var tailProportion = 0.0;
+        var tailSamples = 0;
+        var tailSamplesStart = 0;
+
+        tailProportion = 0.1;
+        // ~~: convert double to signed
+        tailSamples = ~~floor(+length * tailProportion);
+        tailSamplesStart = heapStart + length - tailSamples;
 
         for (var i = tailSamplesStart, samplesThroughTail = 0;
                 i < heapStart + length;
