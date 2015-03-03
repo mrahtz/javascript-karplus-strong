@@ -1,4 +1,4 @@
-function getOptions() {
+function getControlsValues() {
     var stringTensionSlider =
         document.getElementById("stringTension");
     var stringTension = stringTensionSlider.valueAsNumber;

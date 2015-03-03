@@ -65,7 +65,7 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
     var sampleRate = audioCtx.sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
 
-    var options = getOptions();
+    var options = getControlsValues();
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
     var hz = this.basicHz * Math.pow(2, tab/12);
 
