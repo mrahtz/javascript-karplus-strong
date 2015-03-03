@@ -54,18 +54,35 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
                 " at beat " + (time/timeUnit).toFixed(2) + 
                 ", actual time " + this.audioCtx.currentTime);
 
+    // create an audio source node, fed from a data buffer which we can render
+    // our sound into
     var bufferSource = this.audioCtx.createBufferSource();
+
+    // create the actual buffer we're going to write into
     var channels = 2;
-    // 1 second buffer
-    var frameCount = audioCtx.sampleRate;
     var sampleRate = audioCtx.sampleRate;
+    // 1 second buffer
+    var frameCount = 1 * sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
 
     var options = getControlsValues();
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
+
+    // 'tab' represents which fret is held while plucking
+    // each fret represents an increase in pitch by one semitone
+    // (logarithmically, one-twelth of an octave)
     var hz = this.basicHz * Math.pow(2, tab/12);
 
-    asmWrapper(buffer, this.seedNoise, sampleRate, hz, smoothingFactor, velocity, options, this);
+    asmWrapper(
+            buffer,
+            this.seedNoise,
+            sampleRate,
+            hz,
+            smoothingFactor,
+            velocity,
+            options,
+            this
+    );
 
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
