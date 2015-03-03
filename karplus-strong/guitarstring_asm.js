@@ -49,9 +49,9 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
                           velocity);
     */
 
-    // string.prePan is set individually for each string such that
+    // string.acousticLocation is set individually for each string such that
     // the lowest note has a value of -1 and the highest +1
-    var stereoSpread = options.stereoSpread * string.prePan;
+    var stereoSpread = options.stereoSpread * string.acousticLocation;
     // for negative stereoSpreads, the note is pushed to the left
     // for positive stereoSpreads, the note is pushed to the right
     var gainL = (1 - stereoSpread) * 0.5;

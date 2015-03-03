@@ -24,9 +24,8 @@ function GuitarString(audioCtx, stringN, octave, semitone) {
     // this is only used in a magical calculation of filter coefficients
     this.semitoneIndex = octave*12 + semitone - 9;
 
-    // also magic, used for stereo spread
-    // from -1 for first string to +1 for last
-    this.prePan = (stringN - 2.5) * 0.4;
+    // ranges from -1 for first string to +1 for last
+    this.acousticLocation = (stringN - 2.5) * 0.4;
 
     function generateSeedNoise(seed, samples) {
         var noiseArray = new Float32Array(samples);
