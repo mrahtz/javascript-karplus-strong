@@ -19,6 +19,10 @@ function getControlsValues() {
         document.getElementById("pluckDamping");
     var pluckDamping = pluckDampingSlider.valueAsNumber;
 
+    var stereoSpreadSlider =
+        document.getElementById("stereoSpread");
+    var stereoSpread = stereoSpreadSlider.valueAsNumber;
+
     var magicCalculationRadio =
         document.getElementById("magicCalculation");
     var directCalculationRadio =
@@ -41,10 +45,6 @@ function getControlsValues() {
         body = "simple";
     }
 
-    var stereoSpreadSlider =
-        document.getElementById("stereoSpread");
-    var stereoSpread = stereoSpreadSlider.valueAsNumber;
-    
     return {
         stringTension: stringTension,
         characterVariation: characterVariation,
