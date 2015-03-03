@@ -1,8 +1,78 @@
+function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, velocity, options, string) {
+    var targetArrayL = channelBuffer.getChannelData(0);
+    var targetArrayR = channelBuffer.getChannelData(1);
+
+    var heapFloat32Size = seedNoise.length + 
+                          targetArrayL.length +
+                          targetArrayR.length;
+    var heapFloat32 = new Float32Array(heapFloat32Size);
+    var i;
+    for (i = 0; i < seedNoise.length; i++) {
+        heapFloat32[i] = seedNoise[i];
+    }
+
+    // asm.js requires all data in/out of function to
+    // be done through heap object
+    // from the asm.js spec, it sounds like the heap must be
+    // passed in as a plain ArrayBuffer
+    // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
+    var heapBuffer = heapFloat32.buffer;
+    var asm = asmFunctions(window, null, heapBuffer);
+
+    var heapOffsets = {
+        seedStart: 0,
+        seedEnd: seedNoise.length - 1,
+        targetStart: seedNoise.length,
+        targetEnd: seedNoise.length + targetArrayL.length - 1
+    };
+
+    asm.renderKarplusStrong(heapOffsets,
+                            sampleRate,
+                            hz,
+                            velocity,
+                            smoothingFactor,
+                            options.stringTension,
+                            options.pluckDamping,
+                            options.characterVariation);
+
+    if (options.body == "simple") {
+        asm.simpleBody(heapOffsets.targetStart, heapOffsets.targetEnd);
+    }
+
+    asm.fadeTails(heapOffsets.targetStart,
+            heapOffsets.targetEnd - heapOffsets.targetStart + 1);
+    
+    /*
+    asm.renderDecayedSine(heapOffsets,
+                          sampleRate,
+                          hz,
+                          velocity);
+    */
+
+    // string.prePan is set individually for each string such that
+    // the lowest note has a value of -1 and the highest +1
+    var stereoSpread = options.stereoSpread * string.prePan;
+    // for negative stereoSpreads, the note is pushed to the left
+    // for positive stereoSpreads, the note is pushed to the right
+    var gainL = (1 - stereoSpread) * 0.5;
+    var gainR = (1 + stereoSpread) * 0.5;
+    for (i = 0; i < targetArrayL.length; i++) {
+        targetArrayL[i] = heapFloat32[heapOffsets.targetStart+i] * gainL;
+    }
+    for (i = 0; i < targetArrayL.length; i++) {
+        targetArrayR[i] = heapFloat32[heapOffsets.targetStart+i] * gainR;
+    }
+}
+
+// standard asm.js block
+// stdlib: object through which standard library functions are called
+// foreign: object through which external javascript functions are called
+// heap: buffer used for all data in/out of function
 function asmFunctions(stdlib, foreign, heapBuffer) {
     "use asm";
 
     // heap is supposed to come in as just an ArrayBuffer
-    // so first need to get a Float32 of it
+    // so first need to get a Float32 view of it
     var heap = new Float32Array(heapBuffer);
 
     function lowPass(lastOutput, currentInput, smoothingFactor) {
@@ -10,6 +80,37 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             (1 - smoothingFactor) * lastOutput;
         return currentOutput;
     }
+
+    // this is copied verbatim from the original ActionScript source
+    // haven't figured out how it works yet
+    function simpleBody(heapStart, heapEnd) {
+        var r00, f00, r10, f10, f0,
+            c0, c1, r0, r1;
+        r00 = f00 = r10 = f10 = f0 = f1 = 0.0;
+        c0 = 2 * Math.sin(Math.PI * 3.4375 / 44100);
+        c1 = 2 * Math.sin(Math.PI * 6.124928687214833 / 44100);
+        r0 = 0.98;
+        r1 = 0.98;
+        var lastInput = 0, lastOutput = 0;
+        for (var i = heapStart; i < heapEnd; i++) {
+            r00 = r00 * r0;
+            r00 = r00 + (f0 - f00) * c0;
+            f00 = f00 + r00;
+            f00 = f00 - f00 * f00 * f00 * 0.166666666666666;
+            r10 = r10 * r1;
+            r10 = r10 + (f0 - f10) * c1;
+            f10 = f10 + r10;
+            f10 = f10 - f10 * f10 * f10 * 0.166666666666666;
+            f0 = heap[i];
+            heap[i] = f0 + (f00 + f10) * 2;
+
+            var curInput = heap[i];
+            heap[i] = 0.99 * lastOutput + 0.99*(curInput - lastInput);
+            lastInput = curInput;
+            lastOutput = heap[i];
+        }
+    }
+    
     
     // apply a fade envelope to the end of a buffer
     // to make it end at zero ampltiude
@@ -119,8 +220,11 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         }
     }
 
-    return { renderKarplusStrong: renderKarplusStrong,
-             renderDecayedSine: renderDecayedSine,
-             fadeTails: fadeTails };
+    return {
+        renderKarplusStrong: renderKarplusStrong,
+        renderDecayedSine: renderDecayedSine,
+        fadeTails: fadeTails,
+        simpleBody: simpleBody,
+    };
 }
 
