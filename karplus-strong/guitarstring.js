@@ -47,11 +47,11 @@ function GuitarString(audioCtx, stringN, octave, semitone) {
 }
 
 
-GuitarString.prototype.pluck = function(time, velocity, tab) {
+GuitarString.prototype.pluck = function(startTime, velocity, tab) {
     console.log(this.basicHz + " Hz string being plucked" +
                 " with tab " + tab +
                 " with velocity " + velocity +
-                " at beat " + (time/timeUnit).toFixed(2) + 
+                " at beat " + (startTime/timeUnit).toFixed(2) + 
                 ", actual time " + this.audioCtx.currentTime);
 
     // create an audio source node, fed from a data buffer which we can render
@@ -86,7 +86,6 @@ GuitarString.prototype.pluck = function(time, velocity, tab) {
 
     bufferSource.buffer = buffer;
     bufferSource.connect(audioCtx.destination);
-    // start playing at 'time'
-    bufferSource.start(time);
+    bufferSource.start(startTime);
 
 };
