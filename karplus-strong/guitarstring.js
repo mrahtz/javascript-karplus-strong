@@ -65,9 +65,11 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
     var frameCount = 1 * sampleRate;
     var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
 
+    bufferSource.buffer = buffer;
+    bufferSource.connect(audioCtx.destination);
+
     var options = getControlsValues();
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
-
     // 'tab' represents which fret is held while plucking
     // each fret represents an increase in pitch by one semitone
     // (logarithmically, one-twelth of an octave)
@@ -84,8 +86,6 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
             this
     );
 
-    bufferSource.buffer = buffer;
-    bufferSource.connect(audioCtx.destination);
     bufferSource.start(startTime);
 
 };
