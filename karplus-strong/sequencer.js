@@ -16,8 +16,15 @@ function createDummySource(audioCtx) {
 // adjustment of guitar parameters with real-time feedback.
 // (The higher strumGenerationsPerRun, the longer the delay between
 //  parameter adjustments and samples created with the new parameters.)
-function queueSequence(sequenceN, blockStartTime, chords, chordIndex) {
+function queueSequence(sequenceN, blockStartTime, chordIndex) {
     console.log("Sequence number " + sequenceN);
+
+    var chords = [
+        Guitar.C_MAJOR,
+        Guitar.G_MAJOR,
+        Guitar.A_MINOR,
+        Guitar.E_MINOR
+    ];
 
     var playState = document.getElementById("playState").value;
     if (playState == "stopped") {
@@ -99,7 +106,7 @@ function queueSequence(sequenceN, blockStartTime, chords, chordIndex) {
     // call queueSequence() again after a period of time
     var queuerSource = createDummySource(audioCtx);
     queuerSource.onended = function() { 
-        queueSequence(sequenceN, blockStartTime, chords, chordIndex);
+        queueSequence(sequenceN, blockStartTime, chordIndex);
     };
     // we set the next strum to be generated at the same time as the
     // current strum begins playing to allow enough time for the next
@@ -139,12 +146,8 @@ if (audioCtx !== null) {
 }
 
 function startGuitarPlaying() {
+    var startSequenceN = 0;
     var blockStartTime = audioCtx.currentTime;
     var startChordIndex = 0;
-    var startSequenceN = 0;
-    chords = [Guitar.C_MAJOR,
-              Guitar.G_MAJOR,
-              Guitar.A_MINOR,
-              Guitar.E_MINOR];
-    queueSequence(startSequenceN, blockStartTime, chords, startChordIndex);
+    queueSequence(startSequenceN, blockStartTime, startChordIndex);
 }
