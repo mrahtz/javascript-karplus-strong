@@ -10,13 +10,13 @@ function createDummySource(audioCtx) {
     return dummySource;
 }
 
-// Create sound samples for the current part of the rhythm sequence,
-// and queue creation of the following part of the rhythm.
+// Create sound samples for the current part of the strum sequence,
+// and queue generation of sound samples of the following part.
 // The rhythms parts have as fine a granularity as possible to enable
 // adjustment of guitar parameters with real-time feedback.
 // (The higher strumGenerationsPerRun, the longer the delay between
 //  parameter adjustments and samples created with the new parameters.)
-function queueSequence(sequenceN, blockStartTime, chordIndex) {
+function queueStrums(sequenceN, blockStartTime, chordIndex) {
     console.log("Sequence number " + sequenceN);
 
     var chords = [
@@ -103,10 +103,10 @@ function queueSequence(sequenceN, blockStartTime, chordIndex) {
     }
 
     // the dummy source has zero length, and is just used to 
-    // call queueSequence() again after a period of time
+    // call queueStrums() again after a period of time
     var queuerSource = createDummySource(audioCtx);
     queuerSource.onended = function() { 
-        queueSequence(sequenceN, blockStartTime, chordIndex);
+        queueStrums(sequenceN, blockStartTime, chordIndex);
     };
     // we set the next strum to be generated at the same time as the
     // current strum begins playing to allow enough time for the next
@@ -127,5 +127,5 @@ function startGuitarPlaying() {
     var startSequenceN = 0;
     var blockStartTime = audioCtx.currentTime;
     var startChordIndex = 0;
-    queueSequence(startSequenceN, blockStartTime, startChordIndex);
+    queueStrums(startSequenceN, blockStartTime, startChordIndex);
 }
