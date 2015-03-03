@@ -1,6 +1,4 @@
-// === Rhythm code ===
-
-// dummy source used to queue next part of rhythm
+// create zero-length dummy source used to queue next part of rhythm
 function createDummySource(audioCtx) {
     dummySource = audioCtx.createBufferSource();
     var channels = 1;
@@ -16,7 +14,7 @@ function createDummySource(audioCtx) {
 // and queue creation of the following part of the rhythm.
 // The rhythms parts have as fine a granularity as possible to enable
 // adjustment of guitar parameters with real-time feedback.
-// (The larger the parts, the longer the delay between
+// (The higher strumGenerationsPerRun, the longer the delay between
 //  parameter adjustments and samples created with the new parameters.)
 function queueSequence(sequenceN, blockStartTime, chords, chordIndex) {
     console.log("Sequence number " + sequenceN);
@@ -140,7 +138,7 @@ if (audioCtx !== null) {
     guitar = new Guitar(audioCtx);
 }
 
-function startPlaying() {
+function startGuitarPlaying() {
     var blockStartTime = audioCtx.currentTime;
     var startChordIndex = 0;
     var startSequenceN = 0;
