@@ -41,7 +41,7 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
                             options.characterVariation);
 
     if (options.body == "simple") {
-        asm.simpleBody(heapOffsets.targetStart, heapOffsets.targetEnd);
+        asm.resonate(heapOffsets.targetStart, heapOffsets.targetEnd);
     }
 
     asm.fadeTails(heapOffsets.targetStart,
@@ -138,7 +138,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
 
     // this is copied verbatim from the original ActionScript source
     // haven't figured out how it works yet
-    function simpleBody(heapStart, heapEnd) {
+    function resonate(heapStart, heapEnd) {
         // '|0' declares parameter as int
         // http://asmjs.org/spec/latest/#parameter-type-annotations
         heapStart = heapStart|0;
@@ -385,7 +385,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         renderKarplusStrong: renderKarplusStrong,
         //renderDecayedSine: renderDecayedSine,
         fadeTails: fadeTails,
-        simpleBody: simpleBody,
+        resonate: resonate,
     };
 }
 
