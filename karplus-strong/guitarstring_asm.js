@@ -26,7 +26,10 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
         targetEnd: seedNoise.length + targetArrayL.length - 1
     };
 
-    asm.renderKarplusStrong(heapOffsets,
+    asm.renderKarplusStrong(heapOffsets.seedStart,
+                            heapOffsets.seedEnd,
+                            heapOffsets.targetStart,
+                            heapOffsets.targetEnd,
                             sampleRate,
                             hz,
                             velocity,
@@ -209,18 +212,20 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
 
     // the "smoothing factor" parameter is the coefficient
     // used on the terms in the low-pass filter
-    function renderKarplusStrong(heapOffsets,
+    function renderKarplusStrong(
+                                 seedNoiseStart,
+                                 seedNoiseEnd,
+                                 targetArrayStart,
+                                 targetArrayEnd,
                                  sampleRate, hz, velocity,
                                  smoothingFactor, stringTension,
                                  pluckDamping,
                                  characterVariation
                                 ) {
-        // coersion to indicate type of arguments
-        // ORing with 0 indicates type int
-        var seedNoiseStart = heapOffsets.seedStart|0;
-        var seedNoiseEnd = heapOffsets.seedEnd|0;
-        var targetArrayStart = heapOffsets.targetStart|0;
-        var targetArrayEnd = heapOffsets.targetEnd|0;
+        seedNoiseStart = seedNoiseStart|0;
+        seedNoiseEnd = seedNoiseEnd|0;
+        targetArrayStart = targetArrayStart|0;
+        targetArrayEnd = targetArrayEnd|0;
         sampleRate = sampleRate|0;
         hz = hz|0;
 
