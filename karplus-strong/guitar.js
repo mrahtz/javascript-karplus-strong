@@ -58,5 +58,8 @@ if (audioCtx !== null) {
     // now that we've verified Web Audio support, we can show the panel
     var guitarPanel = document.getElementById("guitarPanel");
     guitarPanel.style.display = 'block';
-    guitar = new Guitar(audioCtx, audioCtx.destination);
+
+    var compressor = audioCtx.createDynamicsCompressor();
+    compressor.connect(audioCtx.destination);
+    guitar = new Guitar(audioCtx, compressor);
 }
