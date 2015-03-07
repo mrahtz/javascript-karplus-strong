@@ -76,7 +76,7 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
             smoothingFactor,
             velocity,
             options,
-            this
+            this.acousticLocation
     );
 
     // create an audio source node fed from the buffer we've just written

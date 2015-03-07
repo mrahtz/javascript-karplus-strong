@@ -1,10 +1,18 @@
-function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, velocity, options, string) {
+function asmWrapper(
+        channelBuffer,
+        seedNoise,
+        sampleRate,
+        hz,
+        smoothingFactor,
+        velocity,
+        options,
+        acousticLocation
+) {
     var targetArrayL = channelBuffer.getChannelData(0);
     var targetArrayR = channelBuffer.getChannelData(1);
 
-    var heapFloat32MinimumSize = seedNoise.length + 
-                          targetArrayL.length +
-                          targetArrayR.length;
+    var heapFloat32MinimumSize =
+            seedNoise.length + targetArrayL.length + targetArrayR.length;
     var heapFloat32Size = getNextValidFloat32HeapLength(heapFloat32MinimumSize);
     var heapFloat32 = new Float32Array(heapFloat32Size);
     var i;
@@ -56,7 +64,7 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
 
     // string.acousticLocation is set individually for each string such that
     // the lowest note has a value of -1 and the highest +1
-    var stereoSpread = options.stereoSpread * string.acousticLocation;
+    var stereoSpread = options.stereoSpread * acousticLocation;
     // for negative stereoSpreads, the note is pushed to the left
     // for positive stereoSpreads, the note is pushed to the right
     var gainL = (1 - stereoSpread) * 0.5;
