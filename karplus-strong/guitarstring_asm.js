@@ -46,7 +46,7 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
 
     asm.fadeTails(heapOffsets.targetStart,
             heapOffsets.targetEnd - heapOffsets.targetStart + 1);
-    
+
     /*
     asm.renderDecayedSine(heapOffsets,
                           sampleRate,
@@ -122,6 +122,20 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         return +currentOutput;
     }
 
+    function highPass(lastOutput, lastInput, currentInput, smoothingFactor) {
+        lastOutput = +lastOutput;
+        lastInput = +lastInput;
+        currentInput = +currentInput;
+        smoothingFactor = +smoothingFactor;
+
+        var currentOutput = 0.0;
+        currentOutput =
+            smoothingFactor * lastOutput +
+            smoothingFactor * (currentInput - lastInput);
+
+        return +currentOutput;
+    }
+
     // this is copied verbatim from the original ActionScript source
     // haven't figured out how it works yet
     function simpleBody(heapStart, heapEnd) {
@@ -140,10 +154,14 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         var c1 = 0.0;
         var r0 = 0.0;
         var r1 = 0.0;
-        var curInput = 0.0;
-        var lastInput = 0.0;
-        var lastOutput = 0.0;
         var i = 0;
+        var resonatedSample = 0.0;
+        var resonatedSamplePostHighPass = 0.0;
+        // by making the smoothing factor large, we make the cutoff
+        // frequency very low, acting as just an offset remover
+        var highPassSmoothingFactor = 0.999;
+        var lastOutput = 0.0;
+        var lastInput = 0.0;
         
         // +x indicates that x is a double
         // (asm.js Math functions take doubles as arguments)
@@ -170,16 +188,24 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             f10 = f10 + r10;
             f10 = f10 - f10 * f10 * f10 * 0.166666666666666;
             f0 = +heap[i >> 2];
-            heap[i >> 2] = fround(
+            resonatedSample = fround(
                     f0 + (f00 + f10) * 2.0
             );
 
-            curInput = +heap[i >> 2];
-            heap[i >> 2] = fround(
-                    0.99 * lastOutput + 0.99*(curInput - lastInput)
+            // I'm not sure why, but the resonating process plays
+            // havok with the DC offset - it jumps around everywhere.
+            // We put it back to zero DC offset by adding a high-pass
+            // filter with a super low cutoff frequency.
+            resonatedSamplePostHighPass =  highPass(
+                lastOutput,
+                lastInput,
+                resonatedSample,
+                highPassSmoothingFactor
             );
-            lastInput = curInput;
-            lastOutput = +heap[i >> 2];
+            heap[i >> 2] = resonatedSamplePostHighPass;
+
+            lastOutput = resonatedSamplePostHighPass;
+            lastInput = resonatedSample;
         }
     }
     
