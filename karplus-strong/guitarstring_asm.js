@@ -237,57 +237,68 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
 
         var period = 0.0;
         var periodSamples = 0;
-        var frameCount = 0;
-        var targetIndex = 0;
+        var sampleCount = 0;
         var lastOutputSample = 0.0;
         var curInputSample = 0.0;
-        var heapTargetIndex = 0;
-        var heapNoiseIndex = 0;
         var noiseSample = 0.0;
-        var lastPeriodIndex = 0;
-        var skipFromTension = 0;
-        var inputIndex = 0;
+        var skipSamplesFromTension = 0;
         var curOutputSample = 0.0;
+
+        // the (byte-addressed) index of the heap as a whole that
+        // we get noise samples from
+        var heapNoiseIndexBytes = 0;
+        // the (Float32-addressed) index of the portion of the heap
+        // that we'll be writing to
+        var targetIndex = 0;
+        // the (byte-addressed) index of the heap as a whole where
+        // we'll be writing
+        var heapTargetIndexBytes = 0;
+        // the (byte-addressed) index of the heap as a whole of
+        // the start of the last period of samples
+        var lastPeriodStartIndexBytes = 0;
+        // the (byte-addressed) index of the heap as a whole from
+        // where we'll be taking samples from the last period, after
+        // having added the skip from tension
+        var lastPeriodInputIndexBytes = 0;
 
         period = 1.0/(+(hz>>>0));
         periodSamples = ~~floor(period * +(sampleRate>>>0));
-        frameCount = (targetArrayEnd-targetArrayStart+1)|0;
+        sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
 
         for (targetIndex = 0;
-                (targetIndex|0) < (frameCount|0);
+                (targetIndex|0) < (sampleCount|0);
                 targetIndex = (targetIndex + 1)|0) {
 
-            heapTargetIndex = (targetArrayStart + targetIndex) << 2;
+            heapTargetIndexBytes = (targetArrayStart + targetIndex) << 2;
 
             if ((targetIndex|0) < (periodSamples|0)) {
                 // for the first period, feed in noise
                 // remember, heap index has to be bytes...
-                heapNoiseIndex = (seedNoiseStart + targetIndex) << 2;
-                noiseSample = +heap[heapNoiseIndex >> 2];
+                heapNoiseIndexBytes = (seedNoiseStart + targetIndex) << 2;
+                noiseSample = +heap[heapNoiseIndexBytes >> 2];
                 // create room for character variation noise
                 noiseSample = noiseSample * (1.0 - characterVariation);
                 // add character variation
                 noiseSample = noiseSample +
-                    characterVariation *
-                        (-1.0 +
-                            2.0 *
-                                (+random())
-                        );
-                curInputSample = +lowPass(curInputSample, noiseSample, pluckDamping);
+                    characterVariation * (-1.0 + 2.0 * (+random()));
+                curInputSample =
+                    +lowPass(curInputSample, noiseSample, pluckDamping);
             } else {
                 // for subsequent periods, feed in the output from
                 // about one period ago
-                lastPeriodIndex = (heapTargetIndex - (periodSamples << 2))|0;
-                skipFromTension =
+                lastPeriodStartIndexBytes =
+                    (heapTargetIndexBytes - (periodSamples << 2))|0;
+                skipSamplesFromTension =
                     ~~floor(stringTension * (+(periodSamples>>>0)));
-                inputIndex = (lastPeriodIndex + (skipFromTension << 2))|0;
-                curInputSample = +heap[inputIndex >> 2];
+                lastPeriodInputIndexBytes =
+                    (lastPeriodStartIndexBytes +
+                        (skipSamplesFromTension << 2))|0;
+                curInputSample = +heap[lastPeriodInputIndexBytes >> 2];
             }
 
-            // output is low-pass filtered version of input
             curOutputSample = 
                 +lowPass(lastOutputSample, curInputSample, smoothingFactor);
-            heap[heapTargetIndex >> 2] = curOutputSample;
+            heap[heapTargetIndexBytes >> 2] = curOutputSample;
             lastOutputSample = curOutputSample;
         }
     }
@@ -310,7 +321,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         var periodSamples_float = Math.fround(period*sampleRate);
         // int
         var periodSamples = Math.round(periodSamples_float)|0;
-        var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
+        var sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
 
         var targetIndex = 0;
         while(1) {
@@ -318,10 +329,10 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             var t = Math.fround(Math.fround(targetIndex)/Math.fround(sampleRate));
             heap[heapTargetIndex] = 
                 velocity *
-                Math.pow(2, -Math.fround(targetIndex) / (Math.fround(frameCount)/8)) *
+                Math.pow(2, -Math.fround(targetIndex) / (Math.fround(sampleCount)/8)) *
                 Math.sin(2 * Math.PI * hz * t);
             targetIndex = (targetIndex + 1)|0;
-            if (targetIndex == frameCount) {
+            if (targetIndex == sampleCount) {
                 break;
             }
         }
