@@ -103,7 +103,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
     // to 'floatish'es, which need to be coerced back into floats,
     // and the code becomes unreadable
     function simpleBody(heapStart, heapEnd) {
-        // declare as ints
+        // '|0' declares parameter as int
+        // http://asmjs.org/spec/latest/#parameter-type-annotations
         heapStart = heapStart|0;
         heapEnd = heapEnd|0;
 
@@ -130,7 +131,14 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         r1 = 0.98;
 
         // asm.js seems to require byte addressing of the heap...?
-        for (i = heapStart << 2; (i|0) < (heapEnd|0); i = (i + 4)|0) {
+        // http://asmjs.org/spec/latest/#validateheapaccess-e
+        // yeah, when accessing the heap with an index which is an expression,
+        // the total index expression is validated in a way that
+        // forces the index to be a byte
+        // and apparently '|0' coerces to signed when not in the context
+        // of parameters
+        // http://asmjs.org/spec/latest/#binary-operators
+        for (i = heapStart << 2; (i|0) < (heapEnd << 2); i = (i + 4)|0) {
             r00 = r00 * r0;
             r00 = r00 + (f0 - f00) * c0;
             f00 = f00 + r00;
@@ -153,7 +161,6 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         }
     }
     
-    
     // apply a fade envelope to the end of a buffer
     // to make it end at zero ampltiude
     // (to avoid clicks heard when sample otherwise suddenly
@@ -162,20 +169,41 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         heapStart = heapStart|0;
         length = length|0;
 
+        var heapEnd = 0;
         var tailProportion = 0.0;
         var tailSamples = 0;
         var tailSamplesStart = 0;
+        var i = 0;
+        var samplesThroughTail = 0;
+        var proportionThroughTail = 0.0;
+        var gain = 0.0;
 
         tailProportion = 0.1;
-        // ~~: convert double to signed
-        tailSamples = ~~floor(+length * tailProportion);
-        tailSamplesStart = heapStart + length - tailSamples;
+        // we first convert length from an int to an unsigned (>>>0)
+        // so that we can convert it a double for the argument of floor()
+        // then convert it to a double (+)
+        // then convert the double result of floor to a signed with ~~
+        // http://asmjs.org/spec/latest/#binary-operators
+        // http://asmjs.org/spec/latest/#standard-library
+        // http://asmjs.org/spec/latest/#binary-operators
+        tailSamples = ~~floor(+(length>>>0) * tailProportion);
+        // http://asmjs.org/spec/latest/#additiveexpression
+        // the result of an additive addition is an intish,
+        // which must be coerced back to an int
+        tailSamplesStart = (heapStart + length - tailSamples)|0;
 
-        for (var i = tailSamplesStart, samplesThroughTail = 0;
-                i < heapStart + length;
-                i++, samplesThroughTail++) {
-            var proportionOfTail = samplesThroughTail / tailSamples;
-            heap[i] *= (1 - proportionOfTail);
+        heapEnd = (heapStart + length)|0;
+
+        // so remember, i represents a byte index,
+        // and the heap is a Float32Array (4 bytes)
+        for (i = tailSamplesStart << 2, samplesThroughTail = 0;
+                (i|0) < (heapEnd << 2);
+                i = (i + 4)|0,
+                samplesThroughTail = (samplesThroughTail+1)|0) {
+            proportionThroughTail =
+                    (+(samplesThroughTail>>>0)) / (+(tailSamples>>>0));
+            gain = 1.0 - proportionThroughTail;
+            heap[i >> 2] = heap[i >> 2] * fround(gain);
         }
     }
 
