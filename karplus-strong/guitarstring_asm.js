@@ -2,9 +2,10 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
     var targetArrayL = channelBuffer.getChannelData(0);
     var targetArrayR = channelBuffer.getChannelData(1);
 
-    var heapFloat32Size = seedNoise.length + 
+    var heapFloat32MinimumSize = seedNoise.length + 
                           targetArrayL.length +
                           targetArrayR.length;
+    var heapFloat32Size = getNextValidFloat32HeapLength(heapFloat32MinimumSize);
     var heapFloat32 = new Float32Array(heapFloat32Size);
     var i;
     for (i = 0; i < seedNoise.length; i++) {
@@ -66,6 +67,23 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
     for (i = 0; i < targetArrayL.length; i++) {
         targetArrayR[i] = heapFloat32[heapOffsets.targetStart+i] * gainR;
     }
+}
+
+// http://asmjs.org/spec/latest/#modules
+// the byte length must be 2^n for n in [12, 24],
+// or for bigger heaps, 2^24 * n for n >= 1
+function getNextValidFloat32HeapLength(desiredLengthFloats) {
+    var heapLengthBytes;
+    var desiredLengthBytes = desiredLengthFloats << 2;
+
+    if (desiredLengthBytes <= Math.pow(2, 12)) {
+        heapLengthBytes = Math.pow(2, 12);
+    } else if (desiredLengthBytes < Math.pow(2, 24)) {
+        heapLengthBytes = Math.pow(2, Math.ceil(Math.log2(desiredLengthBytes)));
+    } else {
+        throw("Heap length greater than 2^24 bytes not implemented");
+    }
+    return heapLengthBytes;
 }
 
 // standard asm.js block
