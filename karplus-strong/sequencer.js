@@ -88,7 +88,7 @@ function queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime) {
     // supposed to play the just-generated note, then we're getting
     // behind, so increase the precache time
     if (audioCtx.currentTime > curStrumStartTime) {
-        precacheTime += (audioCtx.currentTime - curStrumStartTime);
+        precacheTime += 0.1;
     }
     document.getElementById("precacheTime").innerHTML = precacheTime;
 
