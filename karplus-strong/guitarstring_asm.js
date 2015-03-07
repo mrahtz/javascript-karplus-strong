@@ -254,14 +254,15 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         frameCount = (targetArrayEnd-targetArrayStart+1)|0;
 
         for (targetIndex = 0;
-                (targetIndex|0) < (frameCount << 2);
-                targetIndex = (targetIndex + 4)|0) {
+                (targetIndex|0) < (frameCount|0);
+                targetIndex = (targetIndex + 1)|0) {
 
-            heapTargetIndex = (targetArrayStart + targetIndex)|0;
+            heapTargetIndex = (targetArrayStart + targetIndex) << 2;
 
             if ((targetIndex|0) < (periodSamples|0)) {
                 // for the first period, feed in noise
-                heapNoiseIndex = ((seedNoiseStart << 2) + targetIndex)|0;
+                // remember, heap index has to be bytes...
+                heapNoiseIndex = (seedNoiseStart + targetIndex) << 2;
                 noiseSample = +heap[heapNoiseIndex >> 2];
                 // create room for character variation noise
                 noiseSample = noiseSample * (1.0 - characterVariation);
@@ -276,7 +277,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             } else {
                 // for subsequent periods, feed in the output from
                 // about one period ago
-                lastPeriodIndex = (heapTargetIndex - periodSamples)|0;
+                lastPeriodIndex = ((heapTargetIndex >> 2) - periodSamples)|0;
                 skipFromTension =
                     ~~floor(stringTension * (+(periodSamples>>>0)));
                 inputIndex = (lastPeriodIndex + skipFromTension)|0;
