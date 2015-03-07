@@ -5,8 +5,6 @@
 // (The higher strumGenerationsPerRun, the longer the delay between
 //  parameter adjustments and samples created with the new parameters.)
 function queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime) {
-    console.log("Sequence number " + sequenceN);
-
     var chords = [
         Guitar.C_MAJOR,
         Guitar.G_MAJOR,

@@ -50,12 +50,6 @@ function GuitarString(
 
 
 GuitarString.prototype.pluck = function(startTime, velocity, tab) {
-    console.log(this.basicHz + " Hz string being plucked" +
-                " with tab " + tab +
-                " with velocity " + velocity +
-                " at beat " + (startTime/timeUnit).toFixed(2) + 
-                ", actual time " + this.audioCtx.currentTime);
-
     // create the buffer we're going to write into
     var channels = 2;
     var sampleRate = audioCtx.sampleRate;

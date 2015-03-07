@@ -29,11 +29,6 @@ Guitar.E_MINOR = [ 0,  2, 2, 0, 3, 0];
 // to add a class method in JavaScript,
 // we add a function property to the class's 'prototype' property
 Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
-
-    console.log("Strumming with velocity " + velocity +
-                ", downstroke: " + downstroke +
-                ", at beat " + (time/timeUnit));
-
     var pluckOrder;
     if (downstroke === true) {
         pluckOrder = [0, 1, 2, 3, 4, 5];
