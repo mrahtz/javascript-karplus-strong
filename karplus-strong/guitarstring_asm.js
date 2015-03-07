@@ -8,11 +8,8 @@ function asmWrapper(
         options,
         acousticLocation
 ) {
-    var targetArrayL = channelBuffer.getChannelData(0);
-    var targetArrayR = channelBuffer.getChannelData(1);
-
     var heapFloat32MinimumSize =
-            seedNoise.length + targetArrayL.length + targetArrayR.length;
+            seedNoise.length + channelBuffer.length;
     var heapFloat32Size = getNextValidFloat32HeapLength(heapFloat32MinimumSize);
     var heapFloat32 = new Float32Array(heapFloat32Size);
     var i;
@@ -33,7 +30,7 @@ function asmWrapper(
         seedStart: 0,
         seedEnd: seedNoise.length - 1,
         targetStart: seedNoise.length,
-        targetEnd: seedNoise.length + targetArrayL.length - 1
+        targetEnd: seedNoise.length + channelBuffer.length - 1
     };
 
     asm.renderKarplusStrong(heapOffsets.seedStart,
@@ -62,6 +59,8 @@ function asmWrapper(
                           velocity);
     */
 
+    var targetArrayL = channelBuffer.getChannelData(0);
+    var targetArrayR = channelBuffer.getChannelData(1);
     // string.acousticLocation is set individually for each string such that
     // the lowest note has a value of -1 and the highest +1
     var stereoSpread = options.stereoSpread * acousticLocation;
