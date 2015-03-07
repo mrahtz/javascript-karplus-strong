@@ -188,15 +188,13 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             f10 = f10 + r10;
             f10 = f10 - f10 * f10 * f10 * 0.166666666666666;
             f0 = +heap[i >> 2];
-            resonatedSample = fround(
-                    f0 + (f00 + f10) * 2.0
-            );
+            resonatedSample = f0 + (f00 + f10) * 2.0;
 
             // I'm not sure why, but the resonating process plays
             // havok with the DC offset - it jumps around everywhere.
             // We put it back to zero DC offset by adding a high-pass
             // filter with a super low cutoff frequency.
-            resonatedSamplePostHighPass =  highPass(
+            resonatedSamplePostHighPass = +highPass(
                 lastOutput,
                 lastInput,
                 resonatedSample,
