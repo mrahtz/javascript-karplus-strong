@@ -202,15 +202,12 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             // havok with the DC offset - it jumps around everywhere.
             // We put it back to zero DC offset by adding a high-pass
             // filter with a super low cutoff frequency.
-            resonatedSamplePostHighPass =
-                highPassSmoothingFactor * lastOutput +
-                highPassSmoothingFactor * (resonatedSample - lastInput);
-            /*resonatedSamplePostHighPass = +highPass(
+            resonatedSamplePostHighPass = +highPass(
                 lastOutput,
                 lastInput,
                 resonatedSample,
                 highPassSmoothingFactor
-            );*/
+            );
             heap[i >> 2] = resonatedSamplePostHighPass;
 
             lastOutput = resonatedSamplePostHighPass;
@@ -334,12 +331,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
                 // add character variation
                 noiseSample = noiseSample +
                     characterVariation * (-1.0 + 2.0 * (+random()));
-
-                /*curInputSample =
-                    +lowPass(curInputSample, noiseSample, pluckDamping);*/
                 curInputSample =
-                    pluckDamping * curInputSample +
-                    (1.0 - pluckDamping) * noiseSample;
+                    +lowPass(curInputSample, noiseSample, pluckDamping);
             } else {
                 // for subsequent periods, feed in the output from
                 // about one period ago
@@ -353,12 +346,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
                 curInputSample = +heap[lastPeriodInputIndexBytes >> 2];
             }
 
-            /*curOutputSample = 
-                +lowPass(lastOutputSample, curInputSample, smoothingFactor);*/
-            curOutputSample =
-                smoothingFactor * curInputSample +
-                (1.0 - smoothingFactor) * lastOutputSample;
-
+            curOutputSample = 
+                +lowPass(lastOutputSample, curInputSample, smoothingFactor);
             heap[heapTargetIndexBytes >> 2] = curOutputSample;
             lastOutputSample = curOutputSample;
         }

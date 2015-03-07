@@ -84,8 +84,6 @@ function queueStrums(sequenceN, blockStartTime, chordIndex) {
                 chordIndex = (chordIndex + 1) % 4;
                 blockStartTime += timeUnit*32;
 
-                curStrumStartTime = -1;
-
                 break;
         }
         sequenceN++;
