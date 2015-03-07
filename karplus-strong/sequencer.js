@@ -112,6 +112,6 @@ function startGuitarPlaying() {
     var startSequenceN = 0;
     var blockStartTime = audioCtx.currentTime;
     var startChordIndex = 0;
-    var precacheTime = 0.3;
-    queueStrums(startSequenceN, blockStartTime, startChordIndex, 0.3);
+    var precacheTime = 0.0;
+    queueStrums(startSequenceN, blockStartTime, startChordIndex, precacheTime);
 }
