@@ -277,10 +277,10 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             } else {
                 // for subsequent periods, feed in the output from
                 // about one period ago
-                lastPeriodIndex = ((heapTargetIndex >> 2) - periodSamples)|0;
+                lastPeriodIndex = (heapTargetIndex - (periodSamples << 2))|0;
                 skipFromTension =
                     ~~floor(stringTension * (+(periodSamples>>>0)));
-                inputIndex = (lastPeriodIndex + skipFromTension)|0;
+                inputIndex = (lastPeriodIndex + (skipFromTension << 2))|0;
                 curInputSample = +heap[inputIndex >> 2];
             }
 
