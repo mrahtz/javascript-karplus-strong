@@ -1,6 +1,6 @@
 // JavaScript's class definitions are just functions
 // the function itself serves as the constructor for the class
-function Guitar(audioCtx) {
+function Guitar(audioCtx, audioDestination) {
     // 'strings' becomes a 'property'
     // (an instance variable)
     this.strings = [
@@ -9,12 +9,12 @@ function Guitar(audioCtx) {
         // - string number
         // - octave
         // - semitone
-        new GuitarString(audioCtx, 0, 2, 4),   // E2
-        new GuitarString(audioCtx, 1, 2, 9),   // A2
-        new GuitarString(audioCtx, 2, 3, 2),   // D3
-        new GuitarString(audioCtx, 3, 3, 7),   // G3
-        new GuitarString(audioCtx, 4, 3, 11),  // B3
-        new GuitarString(audioCtx, 5, 4, 4)    // E4
+        new GuitarString(audioCtx, audioDestination, 0, 2, 4),   // E2
+        new GuitarString(audioCtx, audioDestination, 1, 2, 9),   // A2
+        new GuitarString(audioCtx, audioDestination, 2, 3, 2),   // D3
+        new GuitarString(audioCtx, audioDestination, 3, 3, 7),   // G3
+        new GuitarString(audioCtx, audioDestination, 4, 3, 11),  // B3
+        new GuitarString(audioCtx, audioDestination, 5, 4, 4)    // E4
     ];
 }
 
@@ -58,5 +58,5 @@ if (audioCtx !== null) {
     // now that we've verified Web Audio support, we can show the panel
     var guitarPanel = document.getElementById("guitarPanel");
     guitarPanel.style.display = 'block';
-    guitar = new Guitar(audioCtx);
+    guitar = new Guitar(audioCtx, audioCtx.destination);
 }

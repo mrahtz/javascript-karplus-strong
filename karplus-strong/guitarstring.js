@@ -3,8 +3,10 @@
 // it doesn't seem to appear in the ActionScript code anywhere...
 var timeUnit = 0.12;
 
-function GuitarString(audioCtx, stringN, octave, semitone) {
+function GuitarString(
+        audioCtx, audioDestination, stringN, octave, semitone) {
     this.audioCtx = audioCtx;
+    this.audioDestination = audioDestination;
 
     // work from A0 as a reference,
     // since it has a nice round frequency
@@ -82,7 +84,7 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
     // create an audio source node fed from the buffer we've just written
     var bufferSource = this.audioCtx.createBufferSource();
     bufferSource.buffer = buffer;
-    bufferSource.connect(audioCtx.destination);
+    bufferSource.connect(this.audioDestination);
 
     bufferSource.start(startTime);
 };
