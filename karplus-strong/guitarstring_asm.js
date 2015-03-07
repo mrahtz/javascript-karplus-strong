@@ -11,7 +11,17 @@ function asmWrapper(
     var heapFloat32MinimumSize =
             seedNoise.length + channelBuffer.length;
     var heapFloat32Size = getNextValidFloat32HeapLength(heapFloat32MinimumSize);
-    var heapFloat32 = new Float32Array(heapFloat32Size);
+
+    // we don't want to allocate a new heap on every call,
+    // so we reuse a static variable
+    // but seedNoise.length will be different depending on the string,
+    // so be willing to enlarge it if necessary
+    if (typeof(asmWrapper.heapFloat32) === 'undefined' ||
+            heapFloat32Size > asmWrapper.heapFloat32.length) {
+        asmWrapper.heapFloat32 = new Float32Array(heapFloat32Size);
+    }
+    var heapFloat32 = asmWrapper.heapFloat32;
+
     var i;
     for (i = 0; i < seedNoise.length; i++) {
         heapFloat32[i] = seedNoise[i];
