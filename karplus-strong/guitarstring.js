@@ -54,19 +54,12 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
                 " at beat " + (startTime/timeUnit).toFixed(2) + 
                 ", actual time " + this.audioCtx.currentTime);
 
-    // create an audio source node, fed from a data buffer which we can render
-    // our sound into
-    var bufferSource = this.audioCtx.createBufferSource();
-
-    // create the actual buffer we're going to write into
+    // create the buffer we're going to write into
     var channels = 2;
     var sampleRate = audioCtx.sampleRate;
     // 1 second buffer
-    var frameCount = 1 * sampleRate;
-    var buffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
-
-    bufferSource.buffer = buffer;
-    bufferSource.connect(audioCtx.destination);
+    var sampleCount = 1.0 * sampleRate;
+    var buffer = this.audioCtx.createBuffer(channels, sampleCount, sampleRate);
 
     var options = getControlsValues();
     var smoothingFactor = calculateSmoothingFactor(this, tab, options);
@@ -86,6 +79,10 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
             this
     );
 
-    bufferSource.start(startTime);
+    // create an audio source node fed from the buffer we've just written
+    var bufferSource = this.audioCtx.createBufferSource();
+    bufferSource.buffer = buffer;
+    bufferSource.connect(audioCtx.destination);
 
+    bufferSource.start(startTime);
 };
