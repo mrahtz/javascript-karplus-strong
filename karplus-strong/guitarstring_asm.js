@@ -17,7 +17,8 @@ function asmWrapper(channelBuffer, seedNoise, sampleRate, hz, smoothingFactor, v
     // passed in as a plain ArrayBuffer
     // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
     var heapBuffer = heapFloat32.buffer;
-    var asm = asmFunctions(window, null, heapBuffer);
+    var foreignFunctions = { random: Math.random };
+    var asm = asmFunctions(window, foreignFunctions, heapBuffer);
 
     var heapOffsets = {
         seedStart: 0,
@@ -81,30 +82,30 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
     var sin = stdlib.Math.sin;
     var pi = stdlib.Math.PI;
     var floor = stdlib.Math.floor;
+    var random = foreign.random;
 
     function lowPass(lastOutput, currentInput, smoothingFactor) {
 
         // coersion to indicate type of arguments
-        // fround indicates type float
-        lastOutput = fround(lastOutput);
-        currentInput = fround(currentInput);
-        smoothingFactor = fround(smoothingFactor);
+        // +x represents double
+        // we do all the arithmetic using doubles rather than floats,
+        // because in the asm.js spec, operations done floats resolve
+        // to 'floatish'es, which need to be coerced back into floats,
+        // and the code becomes unreadable
+        lastOutput = +lastOutput;
+        currentInput = +currentInput;
+        smoothingFactor = +smoothingFactor;
 
-        var currentOutput = fround(0);
-        currentOutput = fround(
-            fround(smoothingFactor * currentInput) +
-            fround(fround(fround(1.0) - smoothingFactor) * lastOutput)
-        );
+        var currentOutput = 0.0;
+        currentOutput =
+            smoothingFactor * currentInput +
+            (1.0 - smoothingFactor) * lastOutput;
 
-        return fround(currentOutput);
+        return +currentOutput;
     }
 
     // this is copied verbatim from the original ActionScript source
     // haven't figured out how it works yet
-    // we do all the arithmetic using doubles rather than floats,
-    // because in the asm.js spec, operations done floats resolve
-    // to 'floatish'es, which need to be coerced back into floats,
-    // and the code becomes unreadable
     function simpleBody(heapStart, heapEnd) {
         // '|0' declares parameter as int
         // http://asmjs.org/spec/latest/#parameter-type-annotations
@@ -228,47 +229,69 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         targetArrayEnd = targetArrayEnd|0;
         sampleRate = sampleRate|0;
         hz = hz|0;
+        velocity = +velocity;
+        smoothingFactor = +smoothingFactor;
+        stringTension = +stringTension;
+        pluckDamping = +pluckDamping;
+        characterVariation = +characterVariation;
 
-        // Math.fround(x) indicates type float
-        var hz_float = Math.fround(hz);
-        var period = Math.fround(1/hz_float);
-        var periodSamples_float = Math.fround(period*sampleRate);
-        // int
-        var periodSamples = Math.round(periodSamples_float)|0;
-        var frameCount = (targetArrayEnd-targetArrayStart+1)|0;
+        var period = 0.0;
+        var periodSamples = 0;
+        var frameCount = 0;
         var targetIndex = 0;
-        var lastOutputSample = 0;
-        var curInputSample = 0;
+        var lastOutputSample = 0.0;
+        var curInputSample = 0.0;
+        var heapTargetIndex = 0;
+        var heapNoiseIndex = 0;
+        var noiseSample = 0.0;
+        var lastPeriodIndex = 0;
+        var skipFromTension = 0;
+        var inputIndex = 0;
+        var curOutputSample = 0.0;
+
+        period = 1.0/(+(hz>>>0));
+        periodSamples = ~~floor(period * +(sampleRate>>>0));
+        frameCount = (targetArrayEnd-targetArrayStart+1)|0;
 
         for (targetIndex = 0;
-                targetIndex < frameCount;
-                targetIndex++) {
-            var heapTargetIndex = (targetArrayStart + targetIndex)|0;
-            if (targetIndex < periodSamples) {
+                (targetIndex|0) < (frameCount << 2);
+                targetIndex = (targetIndex + 4)|0) {
+
+            heapTargetIndex = (targetArrayStart + targetIndex)|0;
+
+            if ((targetIndex|0) < (periodSamples|0)) {
                 // for the first period, feed in noise
-                var heapNoiseIndex = (seedNoiseStart + targetIndex)|0;
-                var noiseSample = Math.fround(heap[heapNoiseIndex]);
+                heapNoiseIndex = ((seedNoiseStart << 2) + targetIndex)|0;
+                noiseSample = +heap[heapNoiseIndex >> 2];
                 // create room for character variation noise
-                noiseSample *= (1 - characterVariation);
+                noiseSample = noiseSample * (1.0 - characterVariation);
                 // add character variation
-                noiseSample += characterVariation * (-1 + 2*Math.random());
-                curInputSample = lowPass(curInputSample, noiseSample, pluckDamping);
+                noiseSample = noiseSample +
+                    characterVariation *
+                        (-1.0 +
+                            2.0 *
+                                (+random())
+                        );
+                curInputSample = +lowPass(curInputSample, noiseSample, pluckDamping);
             } else {
                 // for subsequent periods, feed in the output from
                 // about one period ago
-                var lastPeriodIndex = heapTargetIndex - periodSamples;
-                var skipFromTension = Math.round(stringTension * periodSamples);
-                var inputIndex = lastPeriodIndex + skipFromTension;
-                curInputSample = Math.fround(heap[inputIndex]);
+                lastPeriodIndex = (heapTargetIndex - periodSamples)|0;
+                skipFromTension =
+                    ~~floor(stringTension * (+(periodSamples>>>0)));
+                inputIndex = (lastPeriodIndex + skipFromTension)|0;
+                curInputSample = +heap[inputIndex >> 2];
             }
 
             // output is low-pass filtered version of input
-            var curOutputSample = lowPass(lastOutputSample, curInputSample, smoothingFactor);
-            heap[heapTargetIndex] = curOutputSample;
+            curOutputSample = 
+                +lowPass(lastOutputSample, curInputSample, smoothingFactor);
+            heap[heapTargetIndex >> 2] = curOutputSample;
             lastOutputSample = curOutputSample;
         }
     }
 
+    /*
     function renderDecayedSine(heapOffsets,
                                sampleRate, hz, velocity) {
         // coersion to indicate type of arguments
@@ -302,10 +325,11 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
             }
         }
     }
+    */
 
     return {
         renderKarplusStrong: renderKarplusStrong,
-        renderDecayedSine: renderDecayedSine,
+        //renderDecayedSine: renderDecayedSine,
         fadeTails: fadeTails,
         simpleBody: simpleBody,
     };
