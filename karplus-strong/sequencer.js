@@ -90,6 +90,7 @@ function queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime) {
     if (audioCtx.currentTime > curStrumStartTime) {
         precacheTime += 0.1;
     }
+    document.getElementById("precacheTime").innerHTML = precacheTime;
 
     // the dummy source has zero length, and is just used to 
     // call queueStrums() again after a period of time
