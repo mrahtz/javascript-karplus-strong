@@ -90,7 +90,8 @@ function queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime) {
     if (audioCtx.currentTime > curStrumStartTime) {
         precacheTime += 0.1;
     }
-    document.getElementById("precacheTime").innerHTML = precacheTime;
+    document.getElementById("precacheTime").innerHTML =
+        precacheTime.toFixed(1) + " seconds";
 
     // we try to main a constant time between when the strum
     // has finished generated and when it actually plays
