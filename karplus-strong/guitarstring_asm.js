@@ -297,6 +297,13 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         var noiseSample = 0.0;
         var skipSamplesFromTension = 0;
         var curOutputSample = 0.0;
+        var pluckDampingMin = 0.0;
+        var pluckDampingMax = 0.0;
+        var pluckDampingVariationMin = 0.0;
+        var pluckDampingVariationMax = 0.0;
+        var pluckDampingVariationDifference = 0.0;
+        var pluckDampingCoefficient = 0.0;
+        var pluckDampingVariation = 0.9;
 
         // the (byte-addressed) index of the heap as a whole that
         // we get noise samples from
@@ -319,6 +326,33 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         periodSamples = ~~floor(period * +(sampleRate>>>0));
         sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
 
+        /*
+        |- pluckDampingMax
+        |
+        |               | - pluckDampingVariationMax         | -
+        |               | (pluckDampingMax - pluckDamping) * |
+        |               | pluckDampingVariation              | pluckDamping
+        |- pluckDamping | -                                  | Variation
+        |               | (pluckDamping - pluckDampingMin) * | Difference
+        |               | pluckDampingVariation              | 
+        |               | - pluckDampingVariationMin         | -
+        |
+        |- pluckDampingMin 
+        */
+        pluckDampingMin = 0.0;
+        pluckDampingMax = 0.9;
+        pluckDampingVariationMin =
+            pluckDamping -
+            (pluckDamping - pluckDampingMin) * pluckDampingVariation;
+        pluckDampingVariationMax =
+            pluckDamping +
+            (pluckDampingMax - pluckDamping) * pluckDampingVariation;
+        pluckDampingVariationDifference =
+            pluckDampingVariationMax - pluckDampingVariationMin;
+        pluckDampingCoefficient =
+            pluckDampingVariationMin + 
+            (+random()) * pluckDampingVariationDifference;
+
         for (targetIndex = 0;
                 (targetIndex|0) < (sampleCount|0);
                 targetIndex = (targetIndex + 1)|0) {
@@ -338,7 +372,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
                 // by varying 'pluck damping', we can control the spectral
                 // content of the input noise
                 curInputSample =
-                    +lowPass(curInputSample, noiseSample, pluckDamping);
+                    +lowPass(curInputSample, noiseSample,
+                            pluckDampingCoefficient);
             } else if (stringTension != 1.0) {
                 // for subsequent periods, feed in the output from
                 // about one period ago
