@@ -62,13 +62,6 @@ function asmWrapper(
     asm.fadeTails(heapOffsets.targetStart,
             heapOffsets.targetEnd - heapOffsets.targetStart + 1);
 
-    /*
-    asm.renderDecayedSine(heapOffsets,
-                          sampleRate,
-                          hz,
-                          velocity);
-    */
-
     var targetArrayL = channelBuffer.getChannelData(0);
     var targetArrayR = channelBuffer.getChannelData(1);
     // string.acousticLocation is set individually for each string such that
@@ -369,45 +362,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         }
     }
 
-    /*
-    function renderDecayedSine(heapOffsets,
-                               sampleRate, hz, velocity) {
-        // coersion to indicate type of arguments
-        var seedNoiseStart = heapOffsets.noiseStart|0;
-        var seedNoiseEnd = heapOffsets.noiseEnd|0;
-        var targetArrayStart = heapOffsets.targetStart|0;
-        var targetArrayEnd = heapOffsets.targetEnd|0;
-        sampleRate = sampleRate|0;
-        hz = hz|0;
-        velocity = +velocity;
-        // use Math.fround(x) to specify x's type to be 'float'
-        var hz_float = Math.fround(hz);
-        var unity = Math.fround(1);
-        var period = Math.fround(unity/hz_float);
-        var periodSamples_float = Math.fround(period*sampleRate);
-        // int
-        var periodSamples = Math.round(periodSamples_float)|0;
-        var sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
-
-        var targetIndex = 0;
-        while(1) {
-            var heapTargetIndex = (targetArrayStart + targetIndex)|0;
-            var t = Math.fround(Math.fround(targetIndex)/Math.fround(sampleRate));
-            heap[heapTargetIndex] = 
-                velocity *
-                Math.pow(2, -Math.fround(targetIndex) / (Math.fround(sampleCount)/8)) *
-                Math.sin(2 * Math.PI * hz * t);
-            targetIndex = (targetIndex + 1)|0;
-            if (targetIndex == sampleCount) {
-                break;
-            }
-        }
-    }
-    */
-
     return {
         renderKarplusStrong: renderKarplusStrong,
-        //renderDecayedSine: renderDecayedSine,
         fadeTails: fadeTails,
         resonate: resonate,
     };
