@@ -32,17 +32,7 @@ function GuitarString(
     function generateSeedNoise(seed, samples) {
         var noiseArray = new Float32Array(samples);
         for (var i = 0; i < samples; i++) {
-            // taken directly from ActionScript
-            var _loc1_ = 16807 * (seed & 65535);
-            var _loc2_ = 16807 * (seed >> 16);
-            _loc1_ = _loc1_ + ((_loc2_ & 32767) << 16);
-            _loc1_ = _loc1_ + (_loc2_ >> 15);
-            if (_loc1_ > 4.151801719E9)
-            {
-                _loc1_ = _loc1_ - 4.151801719E9;
-            }
-            var rand = (seed = _loc1_) / 4.151801719E9 * 2 - 1;
-            noiseArray[i] = rand;
+            noiseArray[i] = -1 + 2*Math.random();
         }
         return noiseArray;
     }
