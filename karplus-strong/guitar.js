@@ -55,6 +55,15 @@ if (audioCtx !== null) {
     guitarPanel.style.display = 'block';
 
     var compressor = audioCtx.createDynamicsCompressor();
+    // chosen experimentally
+    compressor.threshold.value = -24;
+    // beyond the threshold, the output will only increase by 1/20th of
+    // a dB for every increase in the input of 1DB
+    compressor.ratio.value = 20;
+    // apply the reduction as soon as the signal goes above threshold
+    compressor.attack.value = 0;
+    // and keep it there for a good while
+    compressor.release.value = 1;
     compressor.connect(audioCtx.destination);
     guitar = new Guitar(audioCtx, compressor);
 }
