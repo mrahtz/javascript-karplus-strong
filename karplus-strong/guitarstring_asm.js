@@ -19,22 +19,27 @@ function asmWrapper(
     if (typeof(asmWrapper.heapFloat32) === 'undefined' ||
             heapFloat32Size > asmWrapper.heapFloat32.length) {
         asmWrapper.heapFloat32 = new Float32Array(heapFloat32Size);
+
+        // asm.js requires all data in/out of function to
+        // be done through heap object
+        // from the asm.js spec, it sounds like the heap must be
+        // passed in as a plain ArrayBuffer
+        // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
+        // we specifically do this here so that we only recreate
+        // the asm functions if we really have to
+        // that way, V8 will be able to cache optimized versions
+        // of the functions
+        var heapBuffer = asmWrapper.heapFloat32.buffer;
+        var foreignFunctions = { random: Math.random };
+        asmWrapper.asm = asmFunctions(window, foreignFunctions, heapBuffer);
     }
     var heapFloat32 = asmWrapper.heapFloat32;
+    var asm = asmWrapper.asm;
 
     var i;
     for (i = 0; i < seedNoise.length; i++) {
         heapFloat32[i] = seedNoise[i];
     }
-
-    // asm.js requires all data in/out of function to
-    // be done through heap object
-    // from the asm.js spec, it sounds like the heap must be
-    // passed in as a plain ArrayBuffer
-    // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
-    var heapBuffer = heapFloat32.buffer;
-    var foreignFunctions = { random: Math.random };
-    var asm = asmFunctions(window, foreignFunctions, heapBuffer);
 
     var heapOffsets = {
         seedStart: 0,
