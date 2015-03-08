@@ -53,6 +53,7 @@ function asmWrapper(
                             smoothingFactor,
                             options.stringTension,
                             options.pluckDamping,
+                            options.pluckDampingVariation,
                             options.characterVariation);
 
     if (options.body == "simple") {
@@ -275,6 +276,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
                                  sampleRate, hz, velocity,
                                  smoothingFactor, stringTension,
                                  pluckDamping,
+                                 pluckDampingVariation,
                                  characterVariation
                                 ) {
         seedNoiseStart = seedNoiseStart|0;
@@ -287,6 +289,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         smoothingFactor = +smoothingFactor;
         stringTension = +stringTension;
         pluckDamping = +pluckDamping;
+        pluckDampingVariation = +pluckDampingVariation;
         characterVariation = +characterVariation;
 
         var period = 0.0;
@@ -303,7 +306,6 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         var pluckDampingVariationMax = 0.0;
         var pluckDampingVariationDifference = 0.0;
         var pluckDampingCoefficient = 0.0;
-        var pluckDampingVariation = 0.9;
 
         // the (byte-addressed) index of the heap as a whole that
         // we get noise samples from

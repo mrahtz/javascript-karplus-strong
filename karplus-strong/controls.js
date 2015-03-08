@@ -19,6 +19,10 @@ function getControlsValues() {
         document.getElementById("pluckDamping");
     var pluckDamping = pluckDampingSlider.valueAsNumber;
 
+    var pluckDampingVariationSlider =
+        document.getElementById("pluckDampingVariation");
+    var pluckDampingVariation = pluckDampingVariationSlider.valueAsNumber;
+
     var stereoSpreadSlider =
         document.getElementById("stereoSpread");
     var stereoSpread = stereoSpreadSlider.valueAsNumber;
@@ -52,6 +56,7 @@ function getControlsValues() {
         stringDampingVariation: stringDampingVariation,
         stringDampingCalculation: stringDampingCalculation,
         pluckDamping: pluckDamping,
+        pluckDampingVariation: pluckDampingVariation,
         body: body,
         stereoSpread: stereoSpread
     };
