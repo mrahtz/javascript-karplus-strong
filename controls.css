@@ -1,0 +1,28 @@
+.startStopButton {
+    width: 100px;
+    height: 50px;
+}
+
+#guitarPanel {
+    /* Start off hidden;
+     * only show once Web Audio audio context acquired successfully */
+    display: none;
+}
+
+#guitarControls {
+    display: table;
+}
+
+.controlsRow {
+    display: table-row;
+}
+
+/* Applies to 'Character variation', 'String damping' etc. */
+.controlsRow label:first-child {
+    display: table-cell;
+    padding-right: 30px;
+}
+
+#guitarControls output {
+    padding-left: 10px;
+}

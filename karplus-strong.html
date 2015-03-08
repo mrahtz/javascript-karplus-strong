@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<title>Watar</title>
+<link rel="stylesheet" type="text/css" href="controls.css">
+</head>
+
+<body>
+
+    <div id="guitarPanel">
+
+        <div>
+        <button type="button"
+                class="startStopButton" id="guitarStartStopButton"
+                onclick="toggleGuitarPlaying()">Start</button>
+        <input type="hidden" id="playState" value="stopped">
+        </div>
+        <!--
+         autocomplete="off" necessary to ensure slider returns to default value
+        -->
+        <form autocomplete="off" id="guitarControls">
+            <div class="controlsRow">
+                <label class="controlLabel" for="characterVariation">Character variation</label>
+                <input type="range" id="characterVariation" oninput="updateCharacterVariation()"
+                    min="0.0" max="1.0" step="0.1" value="0.5">
+                <output id="characterVariationValue">0.5</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="stringDamping">String damping</label>
+                <input type="range" id="stringDamping" oninput="updateStringDamping()"
+                    min="0.1" max="0.7" step="0.1" value="0.4">
+                <output id="stringDampingValue">0.4</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="stringDampingVariation">
+                    String damping variation
+                </label>
+                <input type="range" id="stringDampingVariation"
+                    oninput="updateStringDampingVariation()"
+                    min="0.0" max="0.5" step="0.1" value="0.3">
+                <output id="stringDampingVariationValue">0.3</output>
+                <br />
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel">String damping calculation</label>
+                <input type="radio" name="dampingRadio" id="magicCalculation" checked>
+                <label for="magicCalculation">Magic</label>
+                <input type="radio" name="dampingRadio" id="directCalculation">
+                <label for="directCalculation">Direct</label>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="stringTension">String tension</label>
+                <input type="range" id="stringTension" oninput="updateStringTension()"
+                    min="0.0" max="1.0" step="0.1" value="0.0">
+                <output id="stringTensionValue">0.0</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel">Body resonation</label>
+                <input type="radio" name="bodyRadio" id="noBody">
+                <label for="noBody">None</label>
+                <input type="radio" name="bodyRadio" id="simpleBody" checked>
+                <label for="simpleBody">Simple</label>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="stereoSpread">Stereo spread</label>
+                <input type="range" id="stereoSpread" oninput="updateStereoSpread()"
+                    min="0.0" max="1.0" step="0.1" value="0.2">
+                <output id="stereoSpreadValue">0.2</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="pluckDamping">Pluck damping</label>
+                <input type="range" id="pluckDamping" oninput="updatePluckDamping()"
+                    min="0.1" max="0.9" step="0.1" value="0.5">
+                <output id="pluckDampingValue">0.5</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="pluckDampingVariation">Pluck damping variation</label>
+                <input type="range" id="pluckDampingVariation"
+                    oninput="updatePluckDampingVariation()"
+                    min="0.0" max="0.5" step="0.1" value="0.3">
+                <output id="pluckDampingVariationValue">0.3</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="precacheTime">Precache time</label>
+                <output id="precacheTime">(not yet set)</output>
+            </div>
+        </form>
+        <br />
+    </div>
+
+    <script src="karplus-strong/webaudio.js"></script>
+    <script src="karplus-strong/guitarstring_asm.js"></script>
+    <script src="karplus-strong/controls.js"></script>
+    <script src="karplus-strong/guitarstring.js"></script>
+    <script src="karplus-strong/guitar.js"></script>
+    <script src="karplus-strong/sequencer.js"></script>
+
+    <script>
+        function toggleGuitarPlaying() {
+            var startStopButton = document.getElementById("guitarStartStopButton");
+            var text = startStopButton.innerHTML;
+            var playState = document.getElementById("playState");
+            if (text == "Start") {
+                startStopButton.innerHTML = "Stop";
+                playState.value = "playing";
+                startGuitarPlaying();
+            } else {
+                startStopButton.innerHTML = "Start";
+                playState.value = "stopped";
+            }
+        }
+        function updateStringDamping() {
+            var stringDampingInput = document.getElementById("stringDamping");
+            var stringDamping = stringDampingInput.valueAsNumber;
+            var output = document.getElementById("stringDampingValue");
+            output.value = stringDamping.toFixed(1);
+        }
+        function updateStringDampingVariation() {
+            var stringDampingVariationInput = 
+                document.getElementById("stringDampingVariation");
+            var stringDampingVariation = stringDampingVariationInput.valueAsNumber;
+            var output = document.getElementById("stringDampingVariationValue");
+            output.value = stringDampingVariation.toFixed(1);
+        }
+        function updateStringTension() {
+            var stringTensionInput = document.getElementById("stringTension");
+            var stringTension = stringTensionInput.valueAsNumber;
+            var output = document.getElementById("stringTensionValue");
+            output.value = stringTension.toFixed(1);
+        }
+        function updateCharacterVariation() {
+            var characterVariationInput = document.getElementById("characterVariation");
+            var characterVariation = characterVariationInput.valueAsNumber;
+            var output = document.getElementById("characterVariationValue");
+            output.value = characterVariation.toFixed(1);
+        }
+        function updateStereoSpread() {
+            var stereoSpreadInput = document.getElementById("stereoSpread");
+            var stereoSpread = stereoSpreadInput.valueAsNumber;
+            var output = document.getElementById("stereoSpreadValue");
+            output.value = stereoSpread.toFixed(1);
+        }
+        function updatePluckDamping() {
+            var pluckDampingInput = document.getElementById("pluckDamping");
+            var pluckDamping = pluckDampingInput.valueAsNumber;
+            var output = document.getElementById("pluckDampingValue");
+            output.value = pluckDamping.toFixed(1);
+        }
+        function updatePluckDampingVariation() {
+            var pluckDampingVariationInput = document.getElementById("pluckDampingVariation");
+            var pluckDampingVariation = pluckDampingVariationInput.valueAsNumber;
+            var output = document.getElementById("pluckDampingVariationValue");
+            output.value = pluckDampingVariation.toFixed(1);
+        }
+    </script>
+
+</body>
+
+</html>
