@@ -92,21 +92,18 @@ function queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime) {
     }
     document.getElementById("precacheTime").innerHTML = precacheTime;
 
-    // the dummy source has zero length, and is just used to 
-    // call queueStrums() again after a period of time
-    var queuerSource = createDummySource(audioCtx);
-    queuerSource.onended = function() { 
-        queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime);
-    };
-
     // we try to main a constant time between when the strum
     // has finished generated and when it actually plays
     // the next strum will be played at curStrumStartTime; so start
     // generating the one after the next strum at precacheTime before
-    var generateAt = curStrumStartTime - precacheTime;
-    if (generateAt < 0)
-        generateAt = 0;
-    queuerSource.start(generateAt);
+    var generateIn = curStrumStartTime - audioCtx.currentTime - precacheTime;
+    if (generateIn < 0)
+        generateIn = 0;
+
+    nextGenerationCall = function() {
+        queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime);
+    };
+    setTimeout(nextGenerationCall, generateIn * 1000);
 }
 
 function startGuitarPlaying() {
