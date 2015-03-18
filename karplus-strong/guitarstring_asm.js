@@ -376,6 +376,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
                 // add character variation
                 noiseSample = noiseSample +
                     characterVariation * (-1.0 + 2.0 * (+random()));
+                // also velocity
+                noiseSample = noiseSample * velocity;
                 // by varying 'pluck damping', we can control the spectral
                 // content of the input noise
                 curInputSample =
