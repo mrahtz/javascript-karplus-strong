@@ -38,10 +38,9 @@ Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
 
     for (var i = 0; i < 6; i++) {
         var stringNumber = pluckOrder[i];
-        if (chord[stringNumber] == -1) {
-            continue;
+        if (chord[stringNumber] != -1) {
+            this.strings[stringNumber].pluck(time, velocity, chord[stringNumber]);
         }
-        this.strings[stringNumber].pluck(time, velocity, chord[stringNumber]);
         time += Math.random()/128;
     }
 
