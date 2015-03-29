@@ -56,6 +56,9 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
     // (logarithmically, one-twelth of an octave)
     var hz = this.basicHz * Math.pow(2, tab/12);
 
+    // to match original ActionScript source
+    velocity /= 4;
+
     this.asmWrapper.pluck(
             buffer,
             this.seedNoise,

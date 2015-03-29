@@ -53,9 +53,5 @@ if (audioCtx !== null) {
     var guitarPanel = document.getElementById("guitarPanel");
     guitarPanel.style.display = 'block';
 
-    var gainNode = audioCtx.createGain();
-    // gain chosen experimentally to avoid clipping
-    gainNode.gain.value = 0.5;
-    gainNode.connect(audioCtx.destination);
-    guitar = new Guitar(audioCtx, gainNode);
+    guitar = new Guitar(audioCtx, audioCtx.destination);
 }
