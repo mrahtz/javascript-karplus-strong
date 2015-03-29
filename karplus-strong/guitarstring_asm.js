@@ -303,7 +303,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         targetArrayStart = targetArrayStart|0;
         targetArrayEnd = targetArrayEnd|0;
         sampleRate = sampleRate|0;
-        hz = hz|0;
+        hz = +hz;
         velocity = +velocity;
         smoothingFactor = +smoothingFactor;
         stringTension = +stringTension;
@@ -343,8 +343,8 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         // having added the skip from tension
         var lastPeriodInputIndexBytes = 0;
 
-        period = 1.0/(+(hz>>>0));
-        periodSamples = ~~floor(period * +(sampleRate>>>0));
+        period = 1.0/hz;
+        periodSamples = ~~fround(period * +(sampleRate>>>0));
         sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
 
         /*
