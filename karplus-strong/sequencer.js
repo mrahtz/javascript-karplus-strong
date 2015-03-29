@@ -84,10 +84,9 @@ function queueStrums(sequenceN, blockStartTime, chordIndex, precacheTime) {
     }
     sequenceN++;
 
-    // if the current actual time is ahead of the time we were
-    // supposed to play the just-generated note, then we're getting
-    // behind, so increase the precache time
-    if (audioCtx.currentTime > curStrumStartTime) {
+    // if we're only generating the next strum 200 ms ahead of the current time,
+    // we might be falling behind, so increase the precache time
+    if (curStrumStartTime - audioCtx.currentTime < 0.2) {
         precacheTime += 0.1;
     }
     document.getElementById("precacheTime").innerHTML =
