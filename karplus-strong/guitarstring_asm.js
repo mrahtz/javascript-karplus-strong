@@ -19,7 +19,8 @@ AsmWrapper.prototype.initAsm = function(heapSize) {
     // any non-asm.js functions must be referenced through a
     // "foreign function" interface
     var foreignFunctions = {
-        random: Math.random
+        random: Math.random,
+        round: Math.round,
     };
     // we specifically do this here so that we only recreate
     // the asm functions if we really have to
@@ -131,6 +132,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
     var pi = stdlib.Math.PI;
     var floor = stdlib.Math.floor;
     var random = foreign.random;
+    var round = foreign.round;
 
     // simple discrete-time low-pass filter from Wikipedia
     function lowPass(lastOutput, currentInput, smoothingFactor) {
@@ -344,7 +346,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         var lastPeriodInputIndexBytes = 0;
 
         period = 1.0/hz;
-        periodSamples = ~~fround(period * +(sampleRate>>>0));
+        periodSamples = ~~(+round(period * +(sampleRate>>>0)));
         sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
 
         /*
