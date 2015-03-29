@@ -1,4 +1,36 @@
-function asmWrapper(
+function AsmWrapper() {
+    // TODO: should this really be here?
+    this.initAsm(1000);
+}
+
+AsmWrapper.prototype.initAsm = function(heapSize) {
+    var roundedHeapSize = getNextValidFloat32HeapLength(heapSize);
+
+    // asm.js requires all data in/out of function to
+    // be done through heap object
+    // we don't want to allocate a new heap on every call,
+    // so we reuse a static variable
+    // but seedNoise.length will be different depending on the string,
+    // so be willing to enlarge it if necessary
+    this.heap = new Float32Array(roundedHeapSize);
+
+    // from the asm.js spec, it sounds like the heap must be
+    // passed in as a plain ArrayBuffer
+    // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
+    var heapBuffer = this.heap.buffer;
+    // any non-asm.js functions must be referenced through a
+    // "foreign function" interface
+    var foreignFunctions = {
+        random: Math.random
+    };
+    // we specifically do this here so that we only recreate
+    // the asm functions if we really have to
+    // that way, V8 will be able to cache optimized versions
+    // of the functions
+    this.asm = asmFunctions(window, foreignFunctions, heapBuffer);
+};
+
+AsmWrapper.prototype.pluck = function asmWrapper(
         channelBuffer,
         seedNoise,
         sampleRate,
@@ -8,33 +40,14 @@ function asmWrapper(
         options,
         acousticLocation
 ) {
-    var heapFloat32MinimumSize =
-            seedNoise.length + channelBuffer.length;
-    var heapFloat32Size = getNextValidFloat32HeapLength(heapFloat32MinimumSize);
 
-    // asm.js requires all data in/out of function to
-    // be done through heap object
-    // we don't want to allocate a new heap on every call,
-    // so we reuse a static variable
-    // but seedNoise.length will be different depending on the string,
-    // so be willing to enlarge it if necessary
-    if (typeof(asmWrapper.heapFloat32) === 'undefined' ||
-            heapFloat32Size > asmWrapper.heapFloat32.length) {
-        asmWrapper.heapFloat32 = new Float32Array(heapFloat32Size);
-
-        // from the asm.js spec, it sounds like the heap must be
-        // passed in as a plain ArrayBuffer
-        // (.buffer is the ArrayBuffer referenced by the Float32Buffer)
-        var heapBuffer = asmWrapper.heapFloat32.buffer;
-        // we specifically do this here so that we only recreate
-        // the asm functions if we really have to
-        // that way, V8 will be able to cache optimized versions
-        // of the functions
-        var foreignFunctions = { random: Math.random };
-        asmWrapper.asm = asmFunctions(window, foreignFunctions, heapBuffer);
+    var requiredHeapSize = seedNoise.length + channelBuffer.length;
+    if (requiredHeapSize > this.heap.length) {
+        this.initAsm(requiredHeapSize);
     }
-    var heapFloat32 = asmWrapper.heapFloat32;
-    var asm = asmWrapper.asm;
+
+    var heapFloat32 = this.heap;
+    var asm = this.asm;
 
     var i;
     for (i = 0; i < seedNoise.length; i++) {
@@ -83,7 +96,7 @@ function asmWrapper(
     for (i = 0; i < targetArrayL.length; i++) {
         targetArrayR[i] = heapFloat32[heapOffsets.targetStart+i] * gainR;
     }
-}
+};
 
 // http://asmjs.org/spec/latest/#modules
 // the byte length must be 2^n for n in [12, 24],

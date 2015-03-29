@@ -29,6 +29,8 @@ function GuitarString(
     // ranges from -1 for first string to +1 for last
     this.acousticLocation = (stringN - 2.5) * 0.4;
 
+    this.asmWrapper = new AsmWrapper();
+
     function generateSeedNoise(seed, samples) {
         var noiseArray = new Float32Array(samples);
         for (var i = 0; i < samples; i++) {
@@ -54,7 +56,7 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
     // (logarithmically, one-twelth of an octave)
     var hz = this.basicHz * Math.pow(2, tab/12);
 
-    asmWrapper(
+    this.asmWrapper.pluck(
             buffer,
             this.seedNoise,
             sampleRate,
