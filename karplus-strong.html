@@ -31,8 +31,8 @@
             <div class="controlsRow">
                 <label class="controlLabel" for="stringDamping">String damping</label>
                 <input type="range" id="stringDamping" oninput="updateStringDamping()"
-                    min="0.1" max="0.7" step="0.1" value="0.4">
-                <output id="stringDampingValue">0.4</output>
+                    min="0.1" max="0.7" step="0.1" value="0.5">
+                <output id="stringDampingValue">0.5</output>
             </div>
 
             <div class="controlsRow">
@@ -41,39 +41,9 @@
                 </label>
                 <input type="range" id="stringDampingVariation"
                     oninput="updateStringDampingVariation()"
-                    min="0.0" max="0.5" step="0.1" value="0.3">
-                <output id="stringDampingVariationValue">0.3</output>
+                    min="0.0" max="0.5" step="0.05" value="0.25">
+                <output id="stringDampingVariationValue">0.25</output>
                 <br />
-            </div>
-
-            <div class="controlsRow">
-                <label class="controlLabel">String damping calculation</label>
-                <input type="radio" name="dampingRadio" id="magicCalculation" checked>
-                <label for="magicCalculation">Magic</label>
-                <input type="radio" name="dampingRadio" id="directCalculation">
-                <label for="directCalculation">Direct</label>
-            </div>
-
-            <div class="controlsRow">
-                <label class="controlLabel" for="stringTension">String tension</label>
-                <input type="range" id="stringTension" oninput="updateStringTension()"
-                    min="0.0" max="1.0" step="0.1" value="0.0">
-                <output id="stringTensionValue">0.0</output>
-            </div>
-
-            <div class="controlsRow">
-                <label class="controlLabel">Body resonation</label>
-                <input type="radio" name="bodyRadio" id="noBody">
-                <label for="noBody">None</label>
-                <input type="radio" name="bodyRadio" id="simpleBody" checked>
-                <label for="simpleBody">Simple</label>
-            </div>
-
-            <div class="controlsRow">
-                <label class="controlLabel" for="stereoSpread">Stereo spread</label>
-                <input type="range" id="stereoSpread" oninput="updateStereoSpread()"
-                    min="0.0" max="1.0" step="0.1" value="0.2">
-                <output id="stereoSpreadValue">0.2</output>
             </div>
 
             <div class="controlsRow">
@@ -87,8 +57,38 @@
                 <label class="controlLabel" for="pluckDampingVariation">Pluck damping variation</label>
                 <input type="range" id="pluckDampingVariation"
                     oninput="updatePluckDampingVariation()"
-                    min="0.0" max="0.5" step="0.1" value="0.3">
-                <output id="pluckDampingVariationValue">0.3</output>
+                    min="0.0" max="0.5" step="0.05" value="0.25">
+                <output id="pluckDampingVariationValue">0.25</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="stringTension">String tension</label>
+                <input type="range" id="stringTension" oninput="updateStringTension()"
+                    min="0.0" max="1.0" step="0.1" value="0.0">
+                <output id="stringTensionValue">0.0</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel" for="stereoSpread">Stereo spread</label>
+                <input type="range" id="stereoSpread" oninput="updateStereoSpread()"
+                    min="0.0" max="1.0" step="0.1" value="0.2">
+                <output id="stereoSpreadValue">0.2</output>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel">String damping calculation</label>
+                <input type="radio" name="dampingRadio" id="magicCalculation" checked>
+                <label for="magicCalculation">Magic</label>
+                <input type="radio" name="dampingRadio" id="directCalculation">
+                <label for="directCalculation">Direct</label>
+            </div>
+
+            <div class="controlsRow">
+                <label class="controlLabel">Body resonation</label>
+                <input type="radio" name="bodyRadio" id="noBody">
+                <label for="noBody">None</label>
+                <input type="radio" name="bodyRadio" id="simpleBody" checked>
+                <label for="simpleBody">Simple</label>
             </div>
 
             <div class="controlsRow">
