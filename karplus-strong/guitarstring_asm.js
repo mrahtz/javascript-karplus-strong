@@ -1,6 +1,4 @@
 function AsmWrapper() {
-    // TODO: should this really be here?
-    this.initAsm(1000);
 }
 
 AsmWrapper.prototype.initAsm = function(heapSize) {
@@ -42,6 +40,9 @@ AsmWrapper.prototype.pluck = function asmWrapper(
 ) {
 
     var requiredHeapSize = seedNoise.length + channelBuffer.length;
+    if (typeof(this.heap) == 'undefined') {
+        this.initAsm(requiredHeapSize);
+    }
     if (requiredHeapSize > this.heap.length) {
         this.initAsm(requiredHeapSize);
     }
