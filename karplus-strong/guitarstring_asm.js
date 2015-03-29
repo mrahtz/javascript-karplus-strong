@@ -346,7 +346,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         |
         |- pluckDampingMin 
         */
-        pluckDampingMin = 0.0;
+        pluckDampingMin = 0.1;
         pluckDampingMax = 0.9;
         pluckDampingVariationMin =
             pluckDamping -
