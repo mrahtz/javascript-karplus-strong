@@ -1,7 +1,7 @@
-function AsmWrapper() {
+function AsmFunctionsWrapper() {
 }
 
-AsmWrapper.prototype.initAsm = function(heapSize) {
+AsmFunctionsWrapper.prototype.initAsm = function(heapSize) {
     var roundedHeapSize = getNextValidFloat32HeapLength(heapSize);
 
     // asm.js requires all data in/out of function to
@@ -29,7 +29,7 @@ AsmWrapper.prototype.initAsm = function(heapSize) {
     this.asm = asmFunctions(window, foreignFunctions, heapBuffer);
 };
 
-AsmWrapper.prototype.pluckDecayedSine = function(
+AsmFunctionsWrapper.prototype.pluckDecayedSine = function(
         channelBuffer,
         sampleRate,
         hz,
@@ -69,7 +69,7 @@ AsmWrapper.prototype.pluckDecayedSine = function(
     }
 };
 
-AsmWrapper.prototype.pluck = function(
+AsmFunctionsWrapper.prototype.pluck = function(
         channelBuffer,
         seedNoise,
         sampleRate,

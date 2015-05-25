@@ -26,7 +26,7 @@ function GuitarString(
 
     this.mode = "karplus-strong";
 
-    this.asmWrapper = new AsmWrapper();
+    this.asmWrapper = new AsmFunctionsWrapper();
 
     function generateSeedNoise(seed, samples) {
         var noiseArray = new Float32Array(samples);
