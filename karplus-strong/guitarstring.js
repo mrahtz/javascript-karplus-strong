@@ -29,6 +29,8 @@ function GuitarString(
     // ranges from -1 for first string to +1 for last
     this.acousticLocation = (stringN - 2.5) * 0.4;
 
+    this.mode = "karplus-strong";
+
     this.asmWrapper = new AsmWrapper();
 
     function generateSeedNoise(seed, samples) {
@@ -59,16 +61,28 @@ GuitarString.prototype.pluck = function(startTime, velocity, tab) {
     // to match original ActionScript source
     velocity /= 4;
 
-    this.asmWrapper.pluck(
-            buffer,
-            this.seedNoise,
-            sampleRate,
-            hz,
-            smoothingFactor,
-            velocity,
-            options,
-            this.acousticLocation
-    );
+    // TODO: make this a proper enum or something
+    if (this.mode == "karplus-strong") {
+        this.asmWrapper.pluck(
+                buffer,
+                this.seedNoise,
+                sampleRate,
+                hz,
+                smoothingFactor,
+                velocity,
+                options,
+                this.acousticLocation
+        );
+    } else if (this.mode == "sine") {
+        var decayFactor = 8;
+        this.asmWrapper.pluckDecayedSine(
+                buffer,
+                sampleRate,
+                hz,
+                velocity,
+                decayFactor
+        );
+    }
 
     // create an audio source node fed from the buffer we've just written
     var bufferSource = this.audioCtx.createBufferSource();

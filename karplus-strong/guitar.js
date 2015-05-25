@@ -46,6 +46,12 @@ Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
 
 };
 
+Guitar.prototype.setMode = function(mode) {
+    for (var i = 0; i < 6; i++) {
+        this.strings[i].mode = mode;
+    }
+};
+
 var guitar;
 var audioCtx = getAudioContext();
 

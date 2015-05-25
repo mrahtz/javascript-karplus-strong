@@ -120,13 +120,14 @@
     <script src="karplus-strong/sequencer.js"></script>
 
     <script>
-        function toggleGuitarPlaying() {
-            var startStopButton = document.getElementById("guitarStartStopButton");
+        function toggleGuitarPlaying(buttonID, mode) {
+            var startStopButton = document.getElementById(buttonID);
             var text = startStopButton.innerHTML;
             var playState = document.getElementById("playState");
             if (text == "Start") {
                 startStopButton.innerHTML = "Stop";
                 playState.value = "playing";
+                guitar.setMode(mode);
                 startGuitarPlaying();
             } else {
                 startStopButton.innerHTML = "Start";

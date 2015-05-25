@@ -29,6 +29,47 @@ AsmWrapper.prototype.initAsm = function(heapSize) {
     this.asm = asmFunctions(window, foreignFunctions, heapBuffer);
 };
 
+// TODO: do these functions need to be named?
+AsmWrapper.prototype.pluckDecayedSine = function asmWrapper(
+        channelBuffer,
+        sampleRate,
+        hz,
+        velocity,
+        decayFactor
+) {
+
+    var requiredHeapSize = channelBuffer.length;
+    if (typeof(this.heap) == 'undefined') {
+        this.initAsm(requiredHeapSize);
+    }
+    if (requiredHeapSize > this.heap.length) {
+        this.initAsm(requiredHeapSize);
+    }
+
+
+    var heapOffsets = {
+        targetStart: 0,
+        targetEnd: channelBuffer.length-1
+    };
+
+    var heapFloat32 = this.heap;
+    var asm = this.asm;
+
+    asm.renderDecayedSine(heapOffsets.targetStart,
+                          heapOffsets.targetEnd,
+                          sampleRate,
+                          hz,
+                          velocity,
+                          decayFactor);
+
+    var targetArrayL = channelBuffer.getChannelData(0);
+    var targetArrayR = channelBuffer.getChannelData(1);
+    for (i = 0; i < targetArrayL.length; i++) {
+        targetArrayL[i] = heapFloat32[i];
+        targetArrayR[i] = heapFloat32[i];
+    }
+};
+
 AsmWrapper.prototype.pluck = function asmWrapper(
         channelBuffer,
         seedNoise,
@@ -131,6 +172,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
     var sin = stdlib.Math.sin;
     var pi = stdlib.Math.PI;
     var floor = stdlib.Math.floor;
+    var pow = stdlib.Math.pow;
     var random = foreign.random;
     var round = foreign.round;
 
@@ -430,8 +472,53 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         }
     }
 
+    function renderDecayedSine(
+                               targetArrayStart,
+                               targetArrayEnd,
+                               sampleRate, hz, velocity,
+                               decayFactor
+                              ) {
+        targetArrayStart = targetArrayStart|0;
+        targetArrayEnd = targetArrayEnd|0;
+        sampleRate = sampleRate|0;
+        hz = +hz;
+        velocity = +velocity;
+        decayFactor = +decayFactor;
+
+        var period = 0.0;
+        var periodSamples = 0;
+        var sampleCount = 0;
+        // the (Float32-addressed) index of the portion of the heap
+        // that we'll be writing to
+        var targetIndex = 0;
+        // the (byte-addressed) index of the heap as a whole where
+        // we'll be writing
+        var heapTargetIndexBytes = 0;
+
+        var time = 0.0;
+
+        period = 1.0/hz;
+        periodSamples = ~~(+round(period * +(sampleRate>>>0)));
+        sampleCount = (targetArrayEnd-targetArrayStart+1)|0;
+
+        for (targetIndex = 0;
+                (targetIndex|0) < (sampleCount|0);
+                targetIndex = (targetIndex + 1)|0) {
+
+            heapTargetIndexBytes = (targetArrayStart + targetIndex) << 2;
+
+            // >>>0: convert from int to unsigned
+            time = (+(targetIndex>>>0))/(+(sampleRate>>>0));
+            heap[heapTargetIndexBytes >> 2] =
+                velocity *
+                pow(2.0, -decayFactor*time) *
+                sin(2.0 * pi * hz * time);
+        }
+    }
+
     return {
         renderKarplusStrong: renderKarplusStrong,
+        renderDecayedSine: renderDecayedSine,
         fadeTails: fadeTails,
         resonate: resonate,
     };
