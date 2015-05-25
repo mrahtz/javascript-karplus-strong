@@ -72,7 +72,7 @@ function calculateSmoothingFactor(string, tab, options) {
         // this is copied verbatim from the flash one
         // is magical, don't know how it works
         var noteNumber = (string.semitoneIndex + tab - 19)/44;
-        smoothingFactor = 
+        smoothingFactor =
             options.stringDamping +
             Math.pow(noteNumber, 0.5) * (1 - options.stringDamping) * 0.5 +
             (1 - options.stringDamping) *
