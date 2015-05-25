@@ -48,10 +48,16 @@ Guitar.prototype.strumChord = function(time, downstroke, velocity, chord) {
 
 var guitar;
 var audioCtx = getAudioContext();
-if (audioCtx !== null) {
-    // now that we've verified Web Audio support, we can show the panel
-    var guitarPanel = document.getElementById("guitarPanel");
-    guitarPanel.style.display = 'block';
+
+var errorText = document.getElementById("guitarErrorText");
+
+if (audioCtx === null) {
+    errorText.innerHTML =
+        "Error obtaining audio context. Does your browser support Web Audio?";
+} else {
+    errorText.style.display = "none";
+    var guitarControls = document.getElementById("guitarControls");
+    guitarControls.style.display = "block";
 
     guitar = new Guitar(audioCtx, audioCtx.destination);
 }

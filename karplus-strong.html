@@ -3,24 +3,27 @@
 <html>
 
 <head>
-<title>Watar</title>
+<title>Karplus-Strong guitar</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="controls.css">
 </head>
 
 <body>
 
     <div id="guitarPanel">
+        <p id="guitarErrorText">
+        Loading controls...
+        </p>
 
-        <div>
-        <button type="button"
-                class="startStopButton" id="guitarStartStopButton"
-                onclick="toggleGuitarPlaying()">Start</button>
-        <input type="hidden" id="playState" value="stopped">
-        </div>
         <!--
          autocomplete="off" necessary to ensure slider returns to default value
         -->
         <form autocomplete="off" id="guitarControls">
+            <button type="button"
+                    class="startStopButton" id="guitarStartStopButton"
+                    onclick="toggleGuitarPlaying(this.id, 'karplus-strong')">Start</button>
+            <input type="hidden" id="playState" value="stopped">
+
             <div class="controlsRow">
                 <label class="controlLabel" for="characterVariation">Character variation</label>
                 <input type="range" id="characterVariation" oninput="updateCharacterVariation()"
@@ -77,18 +80,28 @@
 
             <div class="controlsRow">
                 <label class="controlLabel">String damping calculation</label>
-                <input type="radio" name="dampingRadio" id="magicCalculation" checked>
-                <label for="magicCalculation">Magic</label>
-                <input type="radio" name="dampingRadio" id="directCalculation">
-                <label for="directCalculation">Direct</label>
+                <span class="radioCell">
+                    <input type="radio" name="dampingRadio"
+                        id="magicCalculation" checked>
+                    <label for="magicCalculation">Magic</label>
+                </span>
+                <span class="radioCell">
+                    <input type="radio" name="dampingRadio" id="directCalculation">
+                    <label for="directCalculation">Direct</label>
+                </span>
             </div>
 
             <div class="controlsRow">
                 <label class="controlLabel">Body resonation</label>
-                <input type="radio" name="bodyRadio" id="noBody">
-                <label for="noBody">None</label>
-                <input type="radio" name="bodyRadio" id="simpleBody" checked>
-                <label for="simpleBody">Simple</label>
+                <span class="radioCell">
+                    <input type="radio" name="bodyRadio" id="noBody">
+                    <label for="noBody">None</label>
+                </span>
+                <span class="radioCell">
+                    <input type="radio" name="bodyRadio" id="simpleBody" checked>
+                    <label for="simpleBody">Simple</label>
+                </span>
+
             </div>
 
             <div class="controlsRow">
@@ -96,7 +109,6 @@
                 <output id="precacheTime">(not yet set)</output>
             </div>
         </form>
-        <br />
     </div>
 
     <script src="karplus-strong/webaudio.js"></script>
