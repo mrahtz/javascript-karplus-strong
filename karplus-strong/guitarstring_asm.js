@@ -29,8 +29,7 @@ AsmWrapper.prototype.initAsm = function(heapSize) {
     this.asm = asmFunctions(window, foreignFunctions, heapBuffer);
 };
 
-// TODO: do these functions need to be named?
-AsmWrapper.prototype.pluckDecayedSine = function asmWrapper(
+AsmWrapper.prototype.pluckDecayedSine = function(
         channelBuffer,
         sampleRate,
         hz,
@@ -70,7 +69,7 @@ AsmWrapper.prototype.pluckDecayedSine = function asmWrapper(
     }
 };
 
-AsmWrapper.prototype.pluck = function asmWrapper(
+AsmWrapper.prototype.pluck = function(
         channelBuffer,
         seedNoise,
         sampleRate,
