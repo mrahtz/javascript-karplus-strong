@@ -1,4 +1,8 @@
 function getAudioContext() {
+    if ('localAudioContext' in window) {
+        return window.localAudioContext;
+    }
+
     var constructor;
     var error;
     if ('AudioContext' in window) {
@@ -8,15 +12,10 @@ function getAudioContext() {
         // Safari
         constructor = window.webkitAudioContext;
     } else {
-        // uh-oh; browser doesn't suport Web Audio?
-        var guitarErrorText = document.getElementById("guitarErrorText");
-        guitarErrorText.innerHTML =
-            "<b>Error: unable to get audio context. " +
-            "Does your browser support Web Audio?</b>";
         return null;
     }
 
     var audioContext = new constructor();
+    window.localAudioContext = audioContext;
     return audioContext;
-
 }
