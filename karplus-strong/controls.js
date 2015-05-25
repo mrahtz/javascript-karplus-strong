@@ -81,3 +81,69 @@ function calculateSmoothingFactor(string, tab, options) {
     }
     return smoothingFactor;
 }
+
+function toggleGuitarPlaying(buttonID, mode) {
+    var startStopButton = document.getElementById(buttonID);
+    var text = startStopButton.innerHTML;
+    var playState = document.getElementById("playState");
+
+
+    if (text == "Start") {
+        startStopButton.innerHTML = "Stop";
+        playState.value = "playing";
+        guitar.setMode(mode);
+        startGuitarPlaying();
+    } else {
+        startStopButton.innerHTML = "Start";
+        playState.value = "stopped";
+    }
+}
+function updateStringDamping() {
+    var stringDampingInput = document.getElementById("stringDamping");
+    var stringDamping = stringDampingInput.valueAsNumber;
+    var output = document.getElementById("stringDampingValue");
+    output.value = stringDamping.toFixed(1);
+}
+function updateStringDampingVariation() {
+    var stringDampingVariationInput =
+        document.getElementById("stringDampingVariation");
+    var stringDampingVariation = stringDampingVariationInput.valueAsNumber;
+    var output = document.getElementById("stringDampingVariationValue");
+    output.value = stringDampingVariation.toFixed(2);
+}
+function updateStringTension() {
+    var stringTensionInput = document.getElementById("stringTension");
+    var stringTension = stringTensionInput.valueAsNumber;
+    var output = document.getElementById("stringTensionValue");
+    output.value = stringTension.toFixed(1);
+}
+function updateCharacterVariation() {
+    var characterVariationInput = document.getElementById("characterVariation");
+    var characterVariation = characterVariationInput.valueAsNumber;
+    var output = document.getElementById("characterVariationValue");
+    output.value = characterVariation.toFixed(1);
+}
+function updateStereoSpread() {
+    var stereoSpreadInput = document.getElementById("stereoSpread");
+    var stereoSpread = stereoSpreadInput.valueAsNumber;
+    var output = document.getElementById("stereoSpreadValue");
+    output.value = stereoSpread.toFixed(1);
+}
+function updatePluckDamping() {
+    var pluckDampingInput = document.getElementById("pluckDamping");
+    var pluckDamping = pluckDampingInput.valueAsNumber;
+    var output = document.getElementById("pluckDampingValue");
+    output.value = pluckDamping.toFixed(1);
+}
+function updatePluckDampingVariation() {
+    var pluckDampingVariationInput = document.getElementById("pluckDampingVariation");
+    var pluckDampingVariation = pluckDampingVariationInput.valueAsNumber;
+    var output = document.getElementById("pluckDampingVariationValue");
+    output.value = pluckDampingVariation.toFixed(2);
+}
+function updateFilterCutoff() {
+    var filterCutoffInput = document.getElementById("filterCutoff");
+    var filterCutoff = filterCutoffInput.valueAsNumber;
+    var output = document.getElementById("filterCutoffValue");
+    output.value = filterCutoff.toFixed(1);
+}
