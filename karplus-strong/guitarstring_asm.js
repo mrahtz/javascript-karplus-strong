@@ -211,7 +211,7 @@ function asmFunctions(stdlib, foreign, heapBuffer) {
         // and apparently '|0' coerces to signed when not in the context
         // of parameters
         // http://asmjs.org/spec/latest/#binary-operators
-        for (i = heapStart << 2; (i|0) < (heapEnd << 2); i = (i + 4)|0) {
+        for (i = heapStart << 2; (i|0) <= (heapEnd << 2); i = (i + 4)|0) {
             r00 = r00 * r0;
             r00 = r00 + (f0 - f00) * c0;
             f00 = f00 + r00;
