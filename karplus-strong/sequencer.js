@@ -1,3 +1,8 @@
+// this was derived experimentally to match Andre Michelle's
+// I've no idea how it works out as this...
+// it doesn't seem to appear in the ActionScript code anywhere...
+var timeUnit = 0.12;
+
 // Create sound samples for the current part of the strum sequence,
 // and queue generation of sound samples of the following part.
 // The rhythms parts have as fine a granularity as possible to enable

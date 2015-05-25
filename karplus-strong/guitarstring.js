@@ -1,8 +1,3 @@
-// this was derived experimentally to match Andre Michelle's
-// I've no idea how it works out as this...
-// it doesn't seem to appear in the ActionScript code anywhere...
-var timeUnit = 0.12;
-
 function GuitarString(
         audioCtx, audioDestination, stringN, octave, semitone) {
     this.audioCtx = audioCtx;
